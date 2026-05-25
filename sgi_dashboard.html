@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGI Industrial — Dashboard Produção</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #0f1525;
+    --card: #131b2e;
+    --card2: #1a2540;
+    --accent: #00d4ff;
+    --accent2: #ff6b2b;
+    --accent3: #00ff9d;
+    --text: #e8f0fe;
+    --text2: #7a8db0;
+    --border: rgba(0,212,255,0.15);
+    --glow: rgba(0,212,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; padding: 16px; max-width: 100%; }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), #0066ff);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+  }
+
+  .logo-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px var(--accent3);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  .status-text {
+    font-size: 11px;
+    color: var(--accent3);
+    letter-spacing: 1px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  #clock {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text2);
+    background: var(--bg2);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* PERIOD FILTER */
+  .period-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+  }
+
+  .period-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .period-btn.active {
+    background: linear-gradient(135deg, var(--accent), #0066ff);
+    color: white;
+    box-shadow: 0 0 16px rgba(0,212,255,0.3);
+  }
+
+  /* CARDS GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* KPI CARD */
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  .kpi.orange::before { background: linear-gradient(90deg, transparent, var(--accent2), transparent); }
+  .kpi.green::before { background: linear-gradient(90deg, transparent, var(--accent3), transparent); }
+
+  .kpi-label {
+    font-size: 10px;
+    color: var(--text2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .kpi-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .kpi.orange .kpi-value { color: var(--accent2); }
+  .kpi.green .kpi-value { color: var(--accent3); }
+
+  .kpi-unit {
+    font-size: 11px;
+    color: var(--text2);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* WIDE CARD */
+  .kpi-wide {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-wide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+    opacity: 0.6;
+  }
+
+  .kpi-wide-label {
+    font-size: 10px;
+    color: var(--text2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  /* BAR CHART */
+  .bar-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .bar-item { display: flex; flex-direction: column; gap: 4px; }
+
+  .bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .bar-track {
+    height: 6px;
+    background: var(--bg2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), #0066ff);
+    transition: width 0.8s ease;
+  }
+
+  .bar-fill.orange { background: linear-gradient(90deg, var(--accent2), #ff3d00); }
+  .bar-fill.green { background: linear-gradient(90deg, var(--accent3), #00cc7a); }
+
+  /* DISPONIBILIDADE GAUGE */
+  .gauge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .gauge {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+  .gauge-bg { fill: none; stroke: var(--bg2); stroke-width: 8; }
+  .gauge-fill { fill: none; stroke: var(--accent3); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+
+  .gauge-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent3);
+  }
+
+  .gauge-info { flex: 1; }
+  .gauge-title { font-size: 10px; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .gauge-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+    padding-left: 4px;
+    border-left: 2px solid var(--accent);
+    padding-left: 8px;
+  }
+
+  /* LOADING */
+  #loading {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 16px;
+  }
+
+  .loader {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loader-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    letter-spacing: 2px;
+  }
+
+  /* ERROR */
+  #error-msg {
+    display: none;
+    background: rgba(255,60,60,0.1);
+    border: 1px solid rgba(255,60,60,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #ff6b6b;
+    margin-bottom: 12px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* LAST UPDATE */
+  .last-update {
+    text-align: center;
+    font-size: 10px;
+    color: var(--text2);
+    font-family: 'Share Tech Mono', monospace;
+    padding: 8px;
+    letter-spacing: 1px;
+  }
+
+  /* REFRESH BTN */
+  .refresh-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:active {
+    background: var(--glow);
+    box-shadow: 0 0 12px rgba(0,212,255,0.2);
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loader"></div>
+  <div class="loader-text">CARREGANDO DADOS...</div>
+</div>
+
+<div class="wrapper">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">SGI</div>
+      <div>
+        <div class="logo-text">SGI INDUSTRIAL</div>
+        <div class="logo-sub">Dashboard Produção</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-dot"></div>
+      <div class="status-text">ONLINE</div>
+      <div id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div id="error-msg"></div>
+
+  <div class="period-bar">
+    <button class="period-btn active" onclick="setPeriod('hoje')">HOJE</button>
+    <button class="period-btn" onclick="setPeriod('semana')">SEMANA</button>
+    <button class="period-btn" onclick="setPeriod('mes')">MÊS</button>
+  </div>
+
+  <div class="section-title">Produção Geral</div>
+  <div class="grid" style="margin-bottom:10px">
+    <div class="kpi">
+      <div class="kpi-label">Qtd Produzida</div>
+      <div class="kpi-value" id="v-qtd">0</div>
+      <div class="kpi-unit">peças</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Registros do Dia</div>
+      <div class="kpi-value" id="v-reg">0</div>
+      <div class="kpi-unit">registros</div>
+    </div>
+  </div>
+
+  <div class="section-title">Ritmo</div>
+  <div class="grid" style="margin-bottom:10px">
+    <div class="kpi green">
+      <div class="kpi-label">Peças / Hora</div>
+      <div class="kpi-value" id="v-pph">0</div>
+      <div class="kpi-unit">pçs/h</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Nº de Paradas</div>
+      <div class="kpi-value" id="v-par">0</div>
+      <div class="kpi-unit">ocorrências</div>
+    </div>
+  </div>
+
+  <div class="section-title">Tempo</div>
+  <div class="grid" style="margin-bottom:10px">
+    <div class="kpi green">
+      <div class="kpi-label">Tempo Produzindo</div>
+      <div class="kpi-value" id="v-tprod">0</div>
+      <div class="kpi-unit">minutos</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Tempo Parado</div>
+      <div class="kpi-value" id="v-tpar">0</div>
+      <div class="kpi-unit">minutos</div>
+    </div>
+  </div>
+
+  <div class="kpi-wide" style="margin-bottom:10px">
+    <div class="gauge-wrap">
+      <div class="gauge">
+        <svg viewBox="0 0 80 80">
+          <circle class="gauge-bg" cx="40" cy="40" r="32"/>
+          <circle class="gauge-fill" id="gauge-circle" cx="40" cy="40" r="32"
+            stroke-dasharray="201"
+            stroke-dashoffset="201"/>
+        </svg>
+        <div class="gauge-text" id="v-disp">0%</div>
+      </div>
+      <div class="gauge-info">
+        <div class="gauge-title">Disponibilidade</div>
+        <div class="gauge-desc" id="v-disp-desc">Calculando tempo produzindo vs tempo parado...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Rankings</div>
+
+  <div class="kpi-wide">
+    <div class="kpi-wide-label">Produto Top</div>
+    <div class="bar-list" id="chart-produtos"></div>
+  </div>
+
+  <div class="kpi-wide" style="margin-top:10px">
+    <div class="kpi-wide-label">Setor Top</div>
+    <div class="bar-list" id="chart-setores"></div>
+  </div>
+
+  <div class="kpi-wide" style="margin-top:10px">
+    <div class="kpi-wide-label">Motivo de Parada</div>
+    <div class="bar-list" id="chart-motivos"></div>
+  </div>
+
+  <button class="refresh-btn" onclick="loadData()">↻ ATUALIZAR DADOS</button>
+  <div class="last-update" id="last-update">Aguardando dados...</div>
+</div>
+
+<script>
+const SHEET_ID = '1Y721GAv66-TyWgUfX4QQxwl5Fw8WJxmFXhujO6lPZTk';
+const SHEET_NAME = 'Página1';
+let currentPeriod = 'hoje';
+let allRows = [];
+
+// Clock
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('pt-BR');
+}, 1000);
+
+function setPeriod(p) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  calcAndRender(allRows);
+}
+
+function getDateRange() {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+
+  if (currentPeriod === 'hoje') {
+    return { start: today, end: today };
+  } else if (currentPeriod === 'semana') {
+    const start = new Date(now);
+    start.setDate(now.getDate() - 6);
+    return { start: start.toISOString().split('T')[0], end: today };
+  } else {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { start: start.toISOString().split('T')[0], end: today };
+  }
+}
+
+function horaToMin(h) {
+  if (!h) return 0;
+  const s = h.toString().replace(/"/g, '').trim();
+  if (s.length < 4) return 0;
+  const hh = parseInt(s.substring(0, 2)) || 0;
+  const mm = parseInt(s.substring(2, 4)) || 0;
+  return hh * 60 + mm;
+}
+
+async function loadData() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('error-msg').style.display = 'none';
+
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47, text.length - 2));
+
+    const cols = json.table.cols.map(c => c.label);
+    allRows = json.table.rows.map(r => {
+      const obj = {};
+      cols.forEach((c, i) => {
+        obj[c] = r.c[i] ? (r.c[i].v !== null ? r.c[i].v : '') : '';
+      });
+      return obj;
+    });
+
+    calcAndRender(allRows);
+    document.getElementById('last-update').textContent =
+      'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+  } catch(e) {
+    document.getElementById('error-msg').textContent = 'Erro ao carregar dados: ' + e.message;
+    document.getElementById('error-msg').style.display = 'block';
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+  }
+}
+
+function calcAndRender(rows) {
+  const { start, end } = getDateRange();
+
+  const filtered = rows.filter(r => {
+    const d = (r.data || '').toString().trim();
+    return d >= start && d <= end;
+  });
+
+  // Indicadores base
+  let qtd = 0, registros = 0, paradas = 0;
+  let tempoProd = 0, tempoParado = 0;
+  const produtos = {}, setores = {}, motivos = {};
+
+  filtered.forEach(r => {
+    const q = parseFloat((r.quantidade || '0').toString().replace(/"/g, '')) || 0;
+    const status = (r.status || '').toString().replace(/"/g, '').trim();
+    const prod = (r.produto || '').toString().replace(/"/g, '').trim();
+    const setor = (r.setorid || '').toString().replace(/"/g, '').trim();
+    const motivo = (r.motivo_parada || '').toString().replace(/"/g, '').trim();
+    const hi = horaToMin(r.hora_inicio);
+    const hf = horaToMin(r.hora_fim);
+    const dur = hf > hi ? hf - hi : 0;
+
+    registros++;
+    qtd += q;
+
+    if (status === 'parado') {
+      paradas++;
+      tempoParado += dur;
+      if (motivo) motivos[motivo] = (motivos[motivo] || 0) + 1;
+    } else {
+      tempoProd += dur;
+    }
+
+    if (prod) produtos[prod] = (produtos[prod] || 0) + q;
+    if (setor) setores[setor] = (setores[setor] || 0) + q;
+  });
+
+  // Peças/hora
+  const pph = tempoProd > 0 ? Math.round(qtd / (tempoProd / 60)) : 0;
+
+  // Disponibilidade
+  const total = tempoProd + tempoParado;
+  const disp = total > 0 ? Math.round((tempoProd / total) * 100) : 0;
+
+  // Render KPIs
+  document.getElementById('v-qtd').textContent = qtd;
+  document.getElementById('v-reg').textContent = registros;
+  document.getElementById('v-pph').textContent = pph;
+  document.getElementById('v-par').textContent = paradas;
+  document.getElementById('v-tprod').textContent = tempoProd;
+  document.getElementById('v-tpar').textContent = tempoParado;
+  document.getElementById('v-disp').textContent = disp + '%';
+  document.getElementById('v-disp-desc').textContent =
+    tempoProd + ' min produzindo / ' + tempoParado + ' min parado';
+
+  // Gauge
+  const circ = 201;
+  const offset = circ - (circ * disp / 100);
+  document.getElementById('gauge-circle').style.strokeDashoffset = offset;
+
+  // Bar charts
+  renderBars('chart-produtos', produtos, 'blue');
+  renderBars('chart-setores', setores, 'blue');
+  renderBars('chart-motivos', motivos, 'orange');
+}
+
+function renderBars(id, data, color) {
+  const el = document.getElementById(id);
+  const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+  const max = entries.length > 0 ? entries[0][1] : 1;
+
+  if (entries.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text2);padding:8px 0">Sem dados para o período</div>';
+    return;
+  }
+
+  el.innerHTML = entries.map(([name, val]) => {
+    const pct = Math.round((val / max) * 100);
+    return `
+      <div class="bar-item">
+        <div class="bar-header">
+          <span>${name}</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:11px">${val}</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill ${color === 'orange' ? 'orange' : ''}" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Auto refresh a cada 5 minutos
+setInterval(loadData, 5 * 60 * 1000);
+
+// Load inicial
+loadData();
+</script>
+</body>
+</html>
