@@ -78,6 +78,8 @@
   .btn-relatorio{width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
   .btn-relatorio:hover{background:var(--blue-light);}
   .btn-voltar{width:100%;padding:12px;background:var(--text-muted);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
+  .btn-imprimir{width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
+  .btn-imprimir:hover{background:#008a44;}
   .filtros-rel{display:none;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;}
   .filtros-rel.visible{display:block;}
   .filtros-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:10px;}
@@ -102,7 +104,13 @@
   .relatorio-view{display:none;}
   .relatorio-view.visible{display:block;}
   .top-text{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;}
-  .debug-bar{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#856404;}
+  @media print{
+    .tabs,.btn-voltar,.btn-imprimir,.btn-refresh,.btn-relatorio,.filtros-rel{display:none!important;}
+    .header{position:relative;}
+    body{background:white;}
+    .tabela-rel{display:block!important;box-shadow:none;border:1px solid #ccc;}
+    .relatorio-view{display:block!important;}
+  }
 </style>
 </head>
 <body>
@@ -128,9 +136,6 @@
 </div>
 
 <div class="content">
-
-<!-- DEBUG -->
-<div class="debug-bar" id="debug-bar">Carregando...</div>
 
 <!-- PRODUÇÃO -->
 <div class="section active" id="tab-producao">
@@ -178,6 +183,7 @@
       </div>
     </div>
     <div class="tabela-rel visible"><div class="tabela-title">Registros de Produção</div><div id="tabela-producao-wrap"></div></div>
+    <button class="btn-imprimir" onclick="window.print()">🖨️ SALVAR / IMPRIMIR PDF</button>
     <button class="btn-voltar" onclick="fecharRelatorio('producao')">← VOLTAR</button>
   </div>
 </div>
@@ -236,6 +242,7 @@
       </div>
     </div>
     <div class="tabela-rel visible"><div class="tabela-title">Registros de Qualidade</div><div id="tabela-qualidade-wrap"></div></div>
+    <button class="btn-imprimir" onclick="window.print()">🖨️ SALVAR / IMPRIMIR PDF</button>
     <button class="btn-voltar" onclick="fecharRelatorio('qualidade')">← VOLTAR</button>
   </div>
 </div>
@@ -290,6 +297,7 @@
       </div>
     </div>
     <div class="tabela-rel visible"><div class="tabela-title">Registros de Manutenção</div><div id="tabela-manutencao-wrap"></div></div>
+    <button class="btn-imprimir" onclick="window.print()">🖨️ SALVAR / IMPRIMIR PDF</button>
     <button class="btn-voltar" onclick="fecharRelatorio('manutencao')">← VOLTAR</button>
   </div>
 </div>
@@ -305,22 +313,20 @@ const CORES=['#FF6600','#004A99','#00a651','#e63946','#f4a261','#0066CC','#9b233
 
 function bust(url){return url+'&t='+Date.now();}
 
-// Data local Brasil (UTC-3)
 function hoje(){
   const d=new Date();
-  const offset=d.getTimezoneOffset();
-  const local=new Date(d.getTime()-offset*60000);
+  const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
   return local.toISOString().split('T')[0];
 }
 function inicioSemana(){
-  const d=new Date();const offset=d.getTimezoneOffset();
-  const local=new Date(d.getTime()-offset*60000);
+  const d=new Date();
+  const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
   local.setDate(local.getDate()-local.getDay());
   return local.toISOString().split('T')[0];
 }
 function inicioMes(){
-  const d=new Date();const offset=d.getTimezoneOffset();
-  const local=new Date(d.getTime()-offset*60000);
+  const d=new Date();
+  const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
   return `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-01`;
 }
 
@@ -422,17 +428,18 @@ async function carregarProducao(){
   dadosP=await fetchCSV(BASE_P);
   const hj=hoje();
   const rows=dadosP.filter(r=>r.data===hj);
-  
-  document.getElementById('debug-bar').textContent=
-    `Data hoje: ${hj} | Prod total: ${dadosP.length} | Prod hoje: ${rows.length} | Q total: ${dadosQ.length} | Q hoje: ${dadosQ.filter(r=>r.data===hj).length}`;
-
   const qtd=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
   const paradas=rows.filter(r=>r.status==='parado').length;
   let tP=0,tPar=0;
   rows.forEach(r=>{
-    const ini=parseInt(r.hora_inicio)||0,fim=parseInt(r.hora_fim)||0;
-    if(ini&&fim&&fim>ini){const d=fim-ini;const h=Math.floor(d/10000),m=Math.floor((d%10000)/100),s=d%100;
-      const mins=h*60+m+s/60;if(r.status==='parado')tPar+=mins;else tP+=mins;}
+    const ini=r.hora_inicio?r.hora_inicio.replace(/\D/g,''):'';
+    const fim=r.hora_fim?r.hora_fim.replace(/\D/g,''):'';
+    if(ini.length>=6&&fim.length>=6){
+      const ih=parseInt(ini.slice(0,2)),im=parseInt(ini.slice(2,4)),is=parseInt(ini.slice(4,6));
+      const fh=parseInt(fim.slice(0,2)),fm=parseInt(fim.slice(2,4)),fs=parseInt(fim.slice(4,6));
+      const iniMin=ih*60+im+is/60,fimMin=fh*60+fm+fs/60;
+      if(fimMin>iniMin){const diff=fimMin-iniMin;if(r.status==='parado')tPar+=diff;else tP+=diff;}
+    }
   });
   const tot=tP+tPar,disp=tot>0?Math.round(tP/tot*100):0,pph=tP>0?Math.round(qtd/(tP/60)):0;
   document.getElementById('p-qtd').textContent=qtd;
@@ -490,8 +497,13 @@ async function carregarManutencao(){
   const fechados=rows.filter(r=>r.status==='fechado').length;
   let somaT=0,contF=0;
   rows.filter(r=>r.status==='fechado'&&r.hora_abertura&&r.hora_fechamento).forEach(r=>{
-    const ini=parseInt(r.hora_abertura)||0,fim=parseInt(r.hora_fechamento)||0;
-    if(fim>ini){const d=fim-ini;somaT+=Math.floor(d/10000)*60+Math.floor((d%10000)/100);contF++;}
+    const ini=r.hora_abertura.replace(/\D/g,''),fim=r.hora_fechamento.replace(/\D/g,'');
+    if(ini.length>=6&&fim.length>=6){
+      const ih=parseInt(ini.slice(0,2)),im=parseInt(ini.slice(2,4));
+      const fh=parseInt(fim.slice(0,2)),fm=parseInt(fim.slice(2,4));
+      const diff=(fh*60+fm)-(ih*60+im);
+      if(diff>0){somaT+=diff;contF++;}
+    }
   });
   const tMed=contF>0?Math.round(somaT/contF):0;
   const tTotal=rows.reduce((s,r)=>s+(parseFloat(r.tempo_parado)||0),0);
@@ -518,7 +530,6 @@ async function carregarManutencao(){
 
 async function carregarTudo(){
   document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('pt-BR');
-  document.getElementById('debug-bar').textContent='Carregando...';
   await Promise.all([carregarProducao(),carregarQualidade(),carregarManutencao()]);
 }
 
