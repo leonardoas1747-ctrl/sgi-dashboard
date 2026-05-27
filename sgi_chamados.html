@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGI Industrial — Chamados</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#E6F0FA;--card:#ffffff;--orange:#FF6600;--blue:#004A99;--blue-light:#0066CC;
+    --text:#1a1a2e;--text-muted:#6b7a99;--border:#d0dff0;--green:#00a651;--red:#e63946;
+    --shadow:0 2px 12px rgba(0,74,153,0.10);--shadow-hover:0 6px 24px rgba(0,74,153,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .header{background:var(--blue);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+  .header-left{display:flex;align-items:center;gap:10px;}
+  .header-logo{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;color:var(--orange);}
+  .header-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;letter-spacing:1px;opacity:0.9;}
+  .header-right{display:flex;align-items:center;gap:12px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .last-update{font-size:11px;opacity:0.6;}
+  .content{padding:16px;}
+  .section-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .section-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--orange);}
+  .section-label{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;color:var(--blue);}
+
+  /* FILTROS */
+  .filtros-wrap{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:12px;}
+  .filtro-grupo{margin-bottom:10px;}
+  .filtro-grupo:last-child{margin-bottom:0;}
+  .filtro-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:6px;}
+  .filtro-btns{display:flex;gap:6px;flex-wrap:wrap;}
+  .filtro-btn{padding:6px 12px;border:2px solid var(--border);background:white;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-muted);transition:all 0.2s;}
+  .filtro-btn.active{border-color:var(--orange);background:var(--orange);color:white;}
+
+  /* CONTADORES */
+  .contadores{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .contador{background:var(--card);border-radius:10px;padding:10px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .contador-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--blue);line-height:1;}
+  .contador-label{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-top:2px;}
+  .contador.aberto .contador-val{color:var(--red);}
+  .contador.fechado .contador-val{color:var(--green);}
+  .contador.total .contador-val{color:var(--blue);}
+
+  /* LISTA */
+  .lista-wrap{display:flex;flex-direction:column;gap:10px;}
+  .chamado-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);border-left:4px solid var(--border);cursor:pointer;transition:all 0.2s;}
+  .chamado-card.aberto{border-left-color:var(--red);}
+  .chamado-card.fechado{border-left-color:var(--green);opacity:0.8;}
+  .chamado-card:hover{box-shadow:var(--shadow-hover);}
+  .chamado-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .chamado-id{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);}
+  .chamado-status{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
+  .chamado-status.aberto{background:rgba(230,57,70,0.15);color:var(--red);}
+  .chamado-status.fechado{background:rgba(0,166,81,0.15);color:var(--green);}
+  .chamado-tipo{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--blue);margin-bottom:4px;}
+  .chamado-info{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);}
+  .chamado-info span{display:flex;align-items:center;gap:3px;}
+  .chamado-descricao{font-size:12px;color:var(--text);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+  .btn-fechar-chamado{width:100%;margin-top:10px;padding:10px;background:var(--orange);color:white;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s;}
+  .btn-fechar-chamado:hover{background:#e05500;}
+
+  /* FORMULÁRIO FECHAR */
+  .form-fechar{display:none;margin-top:10px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);}
+  .form-fechar.visible{display:block;animation:slideDown 0.2s ease;}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .form-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:4px;}
+  .form-input{width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--text);background:white;margin-bottom:10px;outline:none;transition:border 0.2s;}
+  .form-input:focus{border-color:var(--orange);}
+  .form-btns{display:flex;gap:8px;}
+  .btn-confirmar{flex:1;padding:10px;background:var(--green);color:white;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+  .btn-cancelar{flex:1;padding:10px;background:var(--text-muted);color:white;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+
+  /* BTN ATUALIZAR */
+  .btn-refresh{width:100%;padding:12px;background:var(--orange);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-top:12px;transition:background 0.2s;}
+  .btn-refresh:hover{background:#e05500;}
+
+  .empty-msg{text-align:center;color:var(--text-muted);font-size:13px;padding:30px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">SGI</div>
+    <div class="header-title">CHAMADOS</div>
+  </div>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    <div class="last-update" id="lastUpdate">--:--:--</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="section-header">
+    <div class="section-icon">🔧</div>
+    <div class="section-label">Gestão de Chamados</div>
+  </div>
+
+  <!-- CONTADORES -->
+  <div class="contadores">
+    <div class="contador total"><div class="contador-val" id="cnt-total">0</div><div class="contador-label">Total</div></div>
+    <div class="contador aberto"><div class="contador-val" id="cnt-abertos">0</div><div class="contador-label">Abertos</div></div>
+    <div class="contador fechado"><div class="contador-val" id="cnt-fechados">0</div><div class="contador-label">Fechados</div></div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-wrap">
+    <div class="filtro-grupo">
+      <div class="filtro-label">Status</div>
+      <div class="filtro-btns">
+        <button class="filtro-btn active" onclick="setFiltroStatus('todos',this)">Todos</button>
+        <button class="filtro-btn" onclick="setFiltroStatus('aberto',this)">Abertos</button>
+        <button class="filtro-btn" onclick="setFiltroStatus('fechado',this)">Fechados</button>
+      </div>
+    </div>
+    <div class="filtro-grupo">
+      <div class="filtro-label">Período</div>
+      <div class="filtro-btns">
+        <button class="filtro-btn active" onclick="setFiltroPeriodo('todos',this)">Todos</button>
+        <button class="filtro-btn" onclick="setFiltroPeriodo('hoje',this)">Hoje</button>
+        <button class="filtro-btn" onclick="setFiltroPeriodo('semana',this)">Semana</button>
+        <button class="filtro-btn" onclick="setFiltroPeriodo('mes',this)">Mês</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTA DE CHAMADOS -->
+  <div class="lista-wrap" id="lista-chamados"></div>
+
+  <button class="btn-refresh" onclick="carregar()">↻ ATUALIZAR</button>
+
+</div>
+
+<script>
+const URL_M='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
+
+let dadosM=[];
+let filtroStatus='todos';
+let filtroPeriodo='todos';
+let cardAberto=null;
+
+function bust(url){return url+'&t='+Date.now();}
+
+function hoje(){
+  const d=new Date();
+  const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+  return local.toISOString().split('T')[0];
+}
+function inicioSemana(){
+  const d=new Date();
+  const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+  local.setDate(local.getDate()-local.getDay());
+  return local.toISOString().split('T')[0];
+}
+function inicioMes(){
+  const d=new Date();
+  const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+  return `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-01`;
+}
+
+function horaAtual(){
+  const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+String(d.getSeconds()).padStart(2,'0');
+}
+
+async function fetchCSV(url){
+  const r=await fetch(bust(url));
+  const txt=await r.text();
+  const lines=txt.trim().split('\n');
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/\r/g,''));
+  return lines.slice(1).map(line=>{
+    const vals=line.split(',');const obj={};
+    headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim().replace(/\r/g,''));
+    return obj;
+  }).filter(r=>r.empresaid&&r.empresaid!=='');
+}
+
+function setFiltroStatus(v,btn){
+  filtroStatus=v;
+  btn.closest('.filtro-btns').querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLista();
+}
+function setFiltroPeriodo(v,btn){
+  filtroPeriodo=v;
+  btn.closest('.filtro-btns').querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLista();
+}
+
+function filtrarDados(){
+  let rows=[...dadosM];
+  if(filtroStatus!=='todos') rows=rows.filter(r=>r.status===filtroStatus);
+  if(filtroPeriodo==='hoje'){
+    const hj=hoje().replace(/-/g,'').slice(2);
+    rows=rows.filter(r=>r.hora_abertura&&r.hora_abertura.length>=6);
+  }
+  return rows;
+}
+
+function toggleForm(id){
+  if(cardAberto&&cardAberto!==id){
+    const prevForm=document.getElementById('form-'+cardAberto);
+    if(prevForm) prevForm.classList.remove('visible');
+  }
+  cardAberto=id;
+  const form=document.getElementById('form-'+id);
+  if(form) form.classList.toggle('visible');
+}
+
+function confirmarFechamento(empresaid,setorid,id){
+  const nome=document.getElementById('nome-'+id).value.trim();
+  if(!nome){alert('Informe o nome de quem está fechando o chamado.');return;}
+  const hora=horaAtual();
+  const msg='fechar:'+empresaid+':'+setorid+':'+id+':'+nome+':'+hora;
+  window.AppInventor.setWebViewString(msg);
+  document.getElementById('form-'+id).classList.remove('visible');
+  alert('Chamado enviado para fechamento!');
+  setTimeout(()=>carregar(),2000);
+}
+
+function renderLista(){
+  const rows=filtrarDados();
+  const lista=document.getElementById('lista-chamados');
+  if(!rows.length){lista.innerHTML='<div class="empty-msg">Nenhum chamado encontrado</div>';return;}
+  lista.innerHTML=rows.map(r=>`
+    <div class="chamado-card ${r.status}" onclick="if(event.target.tagName!=='BUTTON'&&event.target.tagName!=='INPUT')toggleForm('${r.id}')">
+      <div class="chamado-header">
+        <div class="chamado-id">ID: ${r.id}</div>
+        <div class="chamado-status ${r.status}">${r.status}</div>
+      </div>
+      <div class="chamado-tipo">${r.tipo||'—'}</div>
+      <div class="chamado-info">
+        <span>🏭 Setor ${r.setorid}</span>
+        <span>👤 ${r.aberto_por||'—'}</span>
+        <span>🕐 ${r.hora_abertura||'—'}</span>
+        ${r.status==='fechado'?`<span>✅ ${r.resolvido_por||'—'}</span>`:''}
+      </div>
+      ${r.status==='aberto'?`
+        <button class="btn-fechar-chamado" onclick="toggleForm('${r.id}')">🔧 FECHAR CHAMADO</button>
+        <div class="form-fechar" id="form-${r.id}">
+          <div class="form-label">Resolvido por</div>
+          <input class="form-input" id="nome-${r.id}" type="text" placeholder="Digite seu nome"/>
+          <div class="form-btns">
+            <button class="btn-confirmar" onclick="confirmarFechamento('${r.empresaid}','${r.setorid}','${r.id}')">✓ CONFIRMAR</button>
+            <button class="btn-cancelar" onclick="toggleForm('${r.id}')">✗ CANCELAR</button>
+          </div>
+        </div>
+      `:''}
+    </div>
+  `).join('');
+}
+
+async function carregar(){
+  document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('pt-BR');
+  dadosM=await fetchCSV(URL_M);
+  document.getElementById('cnt-total').textContent=dadosM.length;
+  document.getElementById('cnt-abertos').textContent=dadosM.filter(r=>r.status==='aberto').length;
+  document.getElementById('cnt-fechados').textContent=dadosM.filter(r=>r.status==='fechado').length;
+  renderLista();
+}
+
+carregar();
+setInterval(carregar,60000);
+</script>
+</body>
+</html>
