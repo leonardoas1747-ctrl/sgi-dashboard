@@ -78,19 +78,17 @@
   .btn-relatorio{width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
   .btn-relatorio:hover{background:var(--blue-light);}
   .btn-voltar{width:100%;padding:12px;background:var(--text-muted);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
-  .btn-voltar:hover{background:#555;}
-  .filtros-rel{display:none;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;animation:slideDown 0.3s ease;}
+  .filtros-rel{display:none;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;}
   .filtros-rel.visible{display:block;}
-  @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
   .filtros-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:10px;}
   .filtros-btns{display:flex;gap:8px;}
   .filtro-btn{flex:1;padding:8px;border:2px solid var(--border);background:white;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text-muted);transition:all 0.2s;}
   .filtro-btn.active{border-color:var(--orange);background:var(--orange);color:white;}
-  .tabela-rel{display:none;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;overflow-x:auto;animation:slideDown 0.3s ease;}
+  .tabela-rel{display:none;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;overflow-x:auto;}
   .tabela-rel.visible{display:block;}
   .tabela-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);}
   table{width:100%;border-collapse:collapse;font-size:12px;}
-  th{background:var(--blue);color:white;padding:8px 6px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;font-size:11px;}
+  th{background:var(--blue);color:white;padding:8px 6px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;}
   td{padding:7px 6px;border-bottom:1px solid var(--border);}
   tr:last-child td{border-bottom:none;}
   tr:nth-child(even) td{background:#f5f9ff;}
@@ -104,6 +102,7 @@
   .relatorio-view{display:none;}
   .relatorio-view.visible{display:block;}
   .top-text{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;}
+  .debug-bar{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#856404;}
 </style>
 </head>
 <body>
@@ -130,13 +129,13 @@
 
 <div class="content">
 
-<!-- ===== PRODUÇÃO ===== -->
+<!-- DEBUG -->
+<div class="debug-bar" id="debug-bar">Carregando...</div>
+
+<!-- PRODUÇÃO -->
 <div class="section active" id="tab-producao">
   <div class="dashboard-view" id="dash-producao">
-    <div class="section-header">
-      <div class="section-icon orange">⚙️</div>
-      <div class="section-label">Produção</div>
-    </div>
+    <div class="section-header"><div class="section-icon orange">⚙️</div><div class="section-label">Produção</div></div>
     <div class="grid-2">
       <div class="card card-accent"><div class="card-label">Qtd Produzida</div><div class="card-value" id="p-qtd">0</div><div class="card-unit">peças</div></div>
       <div class="card card-accent-blue"><div class="card-label">Registros</div><div class="card-value" id="p-reg">0</div><div class="card-unit">registros</div></div>
@@ -171,8 +170,7 @@
   </div>
   <div class="relatorio-view" id="rel-producao">
     <div class="section-header"><div class="section-icon orange">📋</div><div class="section-label">Relatório — Produção</div></div>
-    <div class="filtros-rel visible">
-      <div class="filtros-title">Período</div>
+    <div class="filtros-rel visible"><div class="filtros-title">Período</div>
       <div class="filtros-btns">
         <button class="filtro-btn active" onclick="setFiltro('producao','diario',this)">Diário</button>
         <button class="filtro-btn" onclick="setFiltro('producao','semanal',this)">Semanal</button>
@@ -180,11 +178,11 @@
       </div>
     </div>
     <div class="tabela-rel visible"><div class="tabela-title">Registros de Produção</div><div id="tabela-producao-wrap"></div></div>
-    <button class="btn-voltar" onclick="fecharRelatorio('producao')">← VOLTAR AO DASHBOARD</button>
+    <button class="btn-voltar" onclick="fecharRelatorio('producao')">← VOLTAR</button>
   </div>
 </div>
 
-<!-- ===== QUALIDADE ===== -->
+<!-- QUALIDADE -->
 <div class="section" id="tab-qualidade">
   <div class="dashboard-view" id="dash-qualidade">
     <div class="section-header"><div class="section-icon blue">🔍</div><div class="section-label">Qualidade</div></div>
@@ -230,8 +228,7 @@
   </div>
   <div class="relatorio-view" id="rel-qualidade">
     <div class="section-header"><div class="section-icon blue">📋</div><div class="section-label">Relatório — Qualidade</div></div>
-    <div class="filtros-rel visible">
-      <div class="filtros-title">Período</div>
+    <div class="filtros-rel visible"><div class="filtros-title">Período</div>
       <div class="filtros-btns">
         <button class="filtro-btn active" onclick="setFiltro('qualidade','diario',this)">Diário</button>
         <button class="filtro-btn" onclick="setFiltro('qualidade','semanal',this)">Semanal</button>
@@ -239,11 +236,11 @@
       </div>
     </div>
     <div class="tabela-rel visible"><div class="tabela-title">Registros de Qualidade</div><div id="tabela-qualidade-wrap"></div></div>
-    <button class="btn-voltar" onclick="fecharRelatorio('qualidade')">← VOLTAR AO DASHBOARD</button>
+    <button class="btn-voltar" onclick="fecharRelatorio('qualidade')">← VOLTAR</button>
   </div>
 </div>
 
-<!-- ===== MANUTENÇÃO ===== -->
+<!-- MANUTENÇÃO -->
 <div class="section" id="tab-manutencao">
   <div class="dashboard-view" id="dash-manutencao">
     <div class="section-header"><div class="section-icon green">🔧</div><div class="section-label">Manutenção</div></div>
@@ -285,8 +282,7 @@
   </div>
   <div class="relatorio-view" id="rel-manutencao">
     <div class="section-header"><div class="section-icon green">📋</div><div class="section-label">Relatório — Manutenção</div></div>
-    <div class="filtros-rel visible">
-      <div class="filtros-title">Período</div>
+    <div class="filtros-rel visible"><div class="filtros-title">Período</div>
       <div class="filtros-btns">
         <button class="filtro-btn active" onclick="setFiltro('manutencao','diario',this)">Diário</button>
         <button class="filtro-btn" onclick="setFiltro('manutencao','semanal',this)">Semanal</button>
@@ -294,7 +290,7 @@
       </div>
     </div>
     <div class="tabela-rel visible"><div class="tabela-title">Registros de Manutenção</div><div id="tabela-manutencao-wrap"></div></div>
-    <button class="btn-voltar" onclick="fecharRelatorio('manutencao')">← VOLTAR AO DASHBOARD</button>
+    <button class="btn-voltar" onclick="fecharRelatorio('manutencao')">← VOLTAR</button>
   </div>
 </div>
 
@@ -309,12 +305,27 @@ const CORES=['#FF6600','#004A99','#00a651','#e63946','#f4a261','#0066CC','#9b233
 
 function bust(url){return url+'&t='+Date.now();}
 
+// Data local Brasil (UTC-3)
+function hoje(){
+  const d=new Date();
+  const offset=d.getTimezoneOffset();
+  const local=new Date(d.getTime()-offset*60000);
+  return local.toISOString().split('T')[0];
+}
+function inicioSemana(){
+  const d=new Date();const offset=d.getTimezoneOffset();
+  const local=new Date(d.getTime()-offset*60000);
+  local.setDate(local.getDate()-local.getDay());
+  return local.toISOString().split('T')[0];
+}
+function inicioMes(){
+  const d=new Date();const offset=d.getTimezoneOffset();
+  const local=new Date(d.getTime()-offset*60000);
+  return `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-01`;
+}
+
 let dadosP=[],dadosQ=[],dadosM=[];
 let filtros={producao:'diario',qualidade:'diario',manutencao:'diario'};
-
-function hoje(){return new Date().toISOString().split('T')[0];}
-function inicioSemana(){const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split('T')[0];}
-function inicioMes(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;}
 
 function filtrarPeriodo(rows,campo,p){
   const hj=hoje();
@@ -323,7 +334,6 @@ function filtrarPeriodo(rows,campo,p){
   if(p==='mensal') return rows.filter(r=>r[campo]>=inicioMes());
   return rows;
 }
-
 function topItem(arr){
   if(!arr.length) return '—';
   const c={};arr.forEach(v=>c[v]=(c[v]||0)+1);
@@ -332,7 +342,8 @@ function topItem(arr){
 function contar(arr){const c={};arr.forEach(v=>{if(v)c[v]=(c[v]||0)+1;});return c;}
 
 async function fetchCSV(url){
-  const r=await fetch(bust(url));const txt=await r.text();
+  const r=await fetch(bust(url));
+  const txt=await r.text();
   const lines=txt.trim().split('\n');
   const headers=lines[0].split(',').map(h=>h.trim().replace(/\r/g,''));
   return lines.slice(1).map(line=>{
@@ -348,12 +359,10 @@ function showTab(tab,el){
   document.getElementById('tab-'+tab).classList.add('active');
   el.classList.add('active');
 }
-
 function abrirRelatorio(s){
   document.getElementById('dash-'+s).classList.add('hidden');
   document.getElementById('rel-'+s).classList.add('visible');
-  renderTabela(s,filtros[s]);
-  window.scrollTo(0,0);
+  renderTabela(s,filtros[s]);window.scrollTo(0,0);
 }
 function fecharRelatorio(s){
   document.getElementById('dash-'+s).classList.remove('hidden');
@@ -363,37 +372,32 @@ function fecharRelatorio(s){
 function setFiltro(s,p,btn){
   filtros[s]=p;
   btn.closest('.filtros-btns').querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTabela(s,p);
+  btn.classList.add('active');renderTabela(s,p);
 }
 function renderTabela(s,p){
   if(s==='producao') renderTabelaP(p);
   if(s==='qualidade') renderTabelaQ(p);
   if(s==='manutencao') renderTabelaM(p);
 }
-
 function renderTabelaP(p){
   const rows=filtrarPeriodo(dadosP,'data',p);
   const w=document.getElementById('tabela-producao-wrap');
   if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
   w.innerHTML=`<table><tr><th>Data</th><th>Setor</th><th>Produto</th><th>Qtd</th><th>Status</th><th>Motivo</th></tr>
-  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td>
-  <td class="td-${r.status}">${r.status||'—'}</td><td>${r.motivo_parada||'—'}</td></tr>`).join('')}</table>`;
+  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.motivo_parada||'—'}</td></tr>`).join('')}</table>`;
 }
 function renderTabelaQ(p){
   const rows=filtrarPeriodo(dadosQ,'data',p);
   const w=document.getElementById('tabela-qualidade-wrap');
   if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
   w.innerHTML=`<table><tr><th>Data</th><th>Setor</th><th>Produto</th><th>Qtd</th><th>Reprov</th><th>Defeito</th><th>Crit.</th></tr>
-  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td>
-  <td>${r.reprovado||0}</td><td>${r.defeito||'—'}</td><td>${r.criticidade||'—'}</td></tr>`).join('')}</table>`;
+  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td><td>${r.reprovado||0}</td><td>${r.defeito||'—'}</td><td>${r.criticidade||'—'}</td></tr>`).join('')}</table>`;
 }
 function renderTabelaM(p){
   const w=document.getElementById('tabela-manutencao-wrap');
   if(!dadosM.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
   w.innerHTML=`<table><tr><th>ID</th><th>Setor</th><th>Tipo</th><th>Status</th><th>Aberto por</th><th>Resolvido por</th></tr>
-  ${dadosM.map(r=>`<tr><td>${r.id||'—'}</td><td>${r.setorid}</td><td>${r.tipo||'—'}</td>
-  <td class="td-${r.status}">${r.status||'—'}</td><td>${r.aberto_por||'—'}</td><td>${r.resolvido_por||'—'}</td></tr>`).join('')}</table>`;
+  ${dadosM.map(r=>`<tr><td>${r.id||'—'}</td><td>${r.setorid}</td><td>${r.tipo||'—'}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.aberto_por||'—'}</td><td>${r.resolvido_por||'—'}</td></tr>`).join('')}</table>`;
 }
 
 function renderPie(cid,lid,mid,labels,values,colors){
@@ -405,7 +409,6 @@ function renderPie(cid,lid,mid,labels,values,colors){
   if(lid) document.getElementById(lid).innerHTML=labels.map((l,i)=>`<div class="pie-legend-item"><div class="pie-dot" style="background:${colors[i]}"></div>${l}: <strong>${values[i]}</strong> (${Math.round(values[i]/total*100)}%)</div>`).join('');
   if(mid) document.getElementById(mid).innerHTML=`Total: <span>${total}</span>`;
 }
-
 function renderBar(cid,mid,labels,values,color){
   const ctx=document.getElementById(cid).getContext('2d');
   const ex=Chart.getChart(cid);if(ex)ex.destroy();
@@ -417,14 +420,19 @@ function renderBar(cid,mid,labels,values,color){
 
 async function carregarProducao(){
   dadosP=await fetchCSV(BASE_P);
-  const rows=filtrarPeriodo(dadosP,'data','diario');
+  const hj=hoje();
+  const rows=dadosP.filter(r=>r.data===hj);
+  
+  document.getElementById('debug-bar').textContent=
+    `Data hoje: ${hj} | Prod total: ${dadosP.length} | Prod hoje: ${rows.length} | Q total: ${dadosQ.length} | Q hoje: ${dadosQ.filter(r=>r.data===hj).length}`;
+
   const qtd=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
   const paradas=rows.filter(r=>r.status==='parado').length;
   let tP=0,tPar=0;
   rows.forEach(r=>{
     const ini=parseInt(r.hora_inicio)||0,fim=parseInt(r.hora_fim)||0;
-    if(ini&&fim&&fim>ini){const d=fim-ini;const h=Math.floor(d/10000),m=Math.floor((d%10000)/100),s=d%100;const mins=h*60+m+s/60;
-      if(r.status==='parado')tPar+=mins;else tP+=mins;}
+    if(ini&&fim&&fim>ini){const d=fim-ini;const h=Math.floor(d/10000),m=Math.floor((d%10000)/100),s=d%100;
+      const mins=h*60+m+s/60;if(r.status==='parado')tPar+=mins;else tP+=mins;}
   });
   const tot=tP+tPar,disp=tot>0?Math.round(tP/tot*100):0,pph=tP>0?Math.round(qtd/(tP/60)):0;
   document.getElementById('p-qtd').textContent=qtd;
@@ -445,7 +453,8 @@ async function carregarProducao(){
 
 async function carregarQualidade(){
   dadosQ=await fetchCSV(BASE_Q);
-  const rows=filtrarPeriodo(dadosQ,'data','diario');
+  const hj=hoje();
+  const rows=dadosQ.filter(r=>r.data===hj);
   const insp=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
   const aprov=rows.reduce((s,r)=>s+(parseInt(r.aprovado)||0),0);
   const reprov=rows.reduce((s,r)=>s+(parseInt(r.reprovado)||0),0);
@@ -509,6 +518,7 @@ async function carregarManutencao(){
 
 async function carregarTudo(){
   document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('pt-BR');
+  document.getElementById('debug-bar').textContent='Carregando...';
   await Promise.all([carregarProducao(),carregarQualidade(),carregarManutencao()]);
 }
 
