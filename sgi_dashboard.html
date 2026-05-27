@@ -6,329 +6,104 @@
 <title>SGI Industrial — Dashboard</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
-
   :root {
-    --bg: #E6F0FA;
-    --card: #ffffff;
-    --orange: #FF6600;
-    --blue: #004A99;
-    --blue-light: #0066CC;
-    --text: #1a1a2e;
-    --text-muted: #6b7a99;
-    --border: #d0dff0;
-    --green: #00a651;
-    --red: #e63946;
-    --yellow: #f4a261;
-    --shadow: 0 2px 12px rgba(0,74,153,0.10);
-    --shadow-hover: 0 6px 24px rgba(0,74,153,0.18);
+    --bg:#E6F0FA;--card:#ffffff;--orange:#FF6600;--blue:#004A99;--blue-light:#0066CC;
+    --text:#1a1a2e;--text-muted:#6b7a99;--border:#d0dff0;--green:#00a651;--red:#e63946;
+    --shadow:0 2px 12px rgba(0,74,153,0.10);--shadow-hover:0 6px 24px rgba(0,74,153,0.18);
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Barlow', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  /* HEADER */
-  .header {
-    background: var(--blue);
-    color: white;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-  .header-left { display: flex; align-items: center; gap: 10px; }
-  .header-logo {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    color: var(--orange);
-  }
-  .header-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    opacity: 0.9;
-  }
-  .header-right { display: flex; align-items: center; gap: 12px; }
-  .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .status-text { font-size: 12px; opacity: 0.8; }
-  .last-update { font-size: 11px; opacity: 0.6; }
-
-  /* TABS */
-  .tabs {
-    display: flex;
-    background: var(--blue);
-    padding: 0 20px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-  }
-  .tab {
-    padding: 10px 20px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: rgba(255,255,255,0.6);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    text-transform: uppercase;
-  }
-  .tab.active {
-    color: var(--orange);
-    border-bottom-color: var(--orange);
-  }
-  .tab:hover { color: white; }
-
-  /* CONTENT */
-  .content { padding: 16px; }
-  .section { display: none; }
-  .section.active { display: block; }
-
-  /* SECTION TITLE */
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .section-icon {
-    width: 36px; height: 36px;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-  .section-icon.orange { background: var(--orange); }
-  .section-icon.blue { background: var(--blue); }
-  .section-icon.green { background: var(--green); }
-  .section-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--blue);
-  }
-
-  /* GRID */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .grid-1 { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 10px; }
-
-  /* CARD */
-  .card {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 14px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    transition: box-shadow 0.2s;
-  }
-  .card:hover { box-shadow: var(--shadow-hover); }
-  .card-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .card-value {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 32px;
-    font-weight: 900;
-    color: var(--blue);
-    line-height: 1;
-  }
-  .card-unit {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 3px;
-  }
-  .card-accent { border-left: 4px solid var(--orange); }
-  .card-accent-blue { border-left: 4px solid var(--blue); }
-  .card-accent-green { border-left: 4px solid var(--green); }
-  .card-accent-red { border-left: 4px solid var(--red); }
-
-  /* RANKING CARD */
-  .ranking-card {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 14px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    margin-bottom: 10px;
-  }
-  .ranking-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    color: var(--blue);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid var(--border);
-  }
-  .ranking-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .ranking-item:last-child { border-bottom: none; }
-  .ranking-name { font-size: 13px; font-weight: 500; }
-  .ranking-bar-wrap { flex: 1; margin: 0 10px; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
-  .ranking-bar { height: 100%; border-radius: 3px; background: var(--orange); transition: width 0.6s ease; }
-  .ranking-val { font-size: 12px; font-weight: 600; color: var(--blue); min-width: 30px; text-align: right; }
-
-  /* GAUGE */
-  .gauge-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px 0;
-  }
-  .gauge-svg { width: 120px; height: 70px; }
-  .gauge-value {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 28px;
-    font-weight: 900;
-    color: var(--blue);
-    margin-top: -4px;
-  }
-  .gauge-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-  /* CHART */
-  .chart-wrap {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 14px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    margin-bottom: 10px;
-  }
-  .chart-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    color: var(--blue);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid var(--border);
-  }
-  canvas { max-width: 100%; }
-
-  /* DISPONIBILIDADE BAR */
-  .disp-wrap { margin-top: 8px; }
-  .disp-bar-bg {
-    width: 100%; height: 14px;
-    background: var(--bg);
-    border-radius: 7px;
-    overflow: hidden;
-  }
-  .disp-bar {
-    height: 100%;
-    border-radius: 7px;
-    background: linear-gradient(90deg, var(--blue), var(--blue-light));
-    transition: width 0.8s ease;
-  }
-  .disp-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 4px;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-
-  /* STATUS BADGE */
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .badge-green { background: rgba(0,166,81,0.15); color: var(--green); }
-  .badge-red { background: rgba(230,57,70,0.15); color: var(--red); }
-  .badge-orange { background: rgba(255,102,0,0.15); color: var(--orange); }
-
-  /* BTN */
-  .btn-refresh {
-    width: 100%;
-    padding: 12px;
-    background: var(--orange);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.2s;
-  }
-  .btn-refresh:hover { background: #e05500; }
-
-  /* LOADING */
-  .loading {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-muted);
-    font-size: 14px;
-  }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 3px solid var(--border);
-    border-top-color: var(--orange);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 12px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* PIE */
-  .pie-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
-  }
-  .pie-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .pie-dot { width: 10px; height: 10px; border-radius: 50%; }
-
-  .meta-badge {
-    margin-top: 6px;
-  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .header{background:var(--blue);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+  .header-left{display:flex;align-items:center;gap:10px;}
+  .header-logo{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;color:var(--orange);}
+  .header-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;letter-spacing:1px;opacity:0.9;}
+  .header-right{display:flex;align-items:center;gap:12px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .status-text{font-size:12px;opacity:0.8;}
+  .last-update{font-size:11px;opacity:0.6;}
+  .tabs{display:flex;background:var(--blue);padding:0 20px;border-top:1px solid rgba(255,255,255,0.1);}
+  .tab{padding:10px 16px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,0.6);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;text-transform:uppercase;}
+  .tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+  .tab:hover{color:white;}
+  .content{padding:16px;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .section-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .section-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .section-icon.orange{background:var(--orange);}
+  .section-icon.blue{background:var(--blue);}
+  .section-icon.green{background:var(--green);}
+  .section-label{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;color:var(--blue);}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);transition:box-shadow 0.2s;}
+  .card:hover{box-shadow:var(--shadow-hover);}
+  .card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:6px;}
+  .card-value{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--blue);line-height:1;}
+  .card-unit{font-size:12px;color:var(--text-muted);margin-top:3px;}
+  .card-accent{border-left:4px solid var(--orange);}
+  .card-accent-blue{border-left:4px solid var(--blue);}
+  .card-accent-green{border-left:4px solid var(--green);}
+  .card-accent-red{border-left:4px solid var(--red);}
+  .mb10{margin-bottom:10px;}
+  .chart-wrap{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;}
+  .chart-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.8px;color:var(--blue);text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);}
+  .chart-metric{text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text-muted);margin-top:6px;}
+  .chart-metric span{font-weight:700;color:var(--blue);}
+  canvas{max-width:100%;}
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0;}
+  .gauge-svg{width:120px;height:70px;}
+  .gauge-value{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--blue);margin-top:-4px;}
+  .gauge-label{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .disp-wrap{margin-top:8px;}
+  .disp-bar-bg{width:100%;height:14px;background:var(--bg);border-radius:7px;overflow:hidden;}
+  .disp-bar{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--blue),var(--blue-light));transition:width 0.8s ease;}
+  .disp-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--text-muted);}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+  .badge-green{background:rgba(0,166,81,0.15);color:var(--green);}
+  .badge-red{background:rgba(230,57,70,0.15);color:var(--red);}
+  .pie-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .pie-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);}
+  .pie-dot{width:10px;height:10px;border-radius:50%;}
+  .ranking-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;}
+  .ranking-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.8px;color:var(--blue);text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);}
+  .ranking-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);}
+  .ranking-item:last-child{border-bottom:none;}
+  .ranking-name{font-size:13px;font-weight:500;}
+  .ranking-bar-wrap{flex:1;margin:0 10px;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;}
+  .ranking-bar{height:100%;border-radius:3px;background:var(--orange);transition:width 0.6s ease;}
+  .ranking-val{font-size:12px;font-weight:600;color:var(--blue);min-width:30px;text-align:right;}
+  .btn-refresh{width:100%;padding:12px;background:var(--orange);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
+  .btn-refresh:hover{background:#e05500;}
+  .btn-relatorio{width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
+  .btn-relatorio:hover{background:var(--blue-light);}
+  .btn-voltar{width:100%;padding:12px;background:var(--text-muted);color:white;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
+  .btn-voltar:hover{background:#555;}
+  .filtros-rel{display:none;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;animation:slideDown 0.3s ease;}
+  .filtros-rel.visible{display:block;}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+  .filtros-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:10px;}
+  .filtros-btns{display:flex;gap:8px;}
+  .filtro-btn{flex:1;padding:8px;border:2px solid var(--border);background:white;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text-muted);transition:all 0.2s;}
+  .filtro-btn.active{border-color:var(--orange);background:var(--orange);color:white;}
+  .tabela-rel{display:none;background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;overflow-x:auto;animation:slideDown 0.3s ease;}
+  .tabela-rel.visible{display:block;}
+  .tabela-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{background:var(--blue);color:white;padding:8px 6px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;font-size:11px;}
+  td{padding:7px 6px;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  tr:nth-child(even) td{background:#f5f9ff;}
+  .td-aberto{color:var(--red);font-weight:600;}
+  .td-fechado{color:var(--green);font-weight:600;}
+  .td-parado{color:var(--red);font-weight:600;}
+  .td-trabalhando{color:var(--green);font-weight:600;}
+  .empty-msg{text-align:center;color:var(--text-muted);font-size:13px;padding:20px;}
+  .dashboard-view{display:block;}
+  .dashboard-view.hidden{display:none;}
+  .relatorio-view{display:none;}
+  .relatorio-view.visible{display:block;}
+  .top-text{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;}
 </style>
 </head>
 <body>
@@ -348,125 +123,80 @@
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('producao')">⚙️ Produção</div>
-  <div class="tab" onclick="showTab('qualidade')">🔍 Qualidade</div>
-  <div class="tab" onclick="showTab('manutencao')">🔧 Manutenção</div>
+  <div class="tab active" onclick="showTab('producao',this)">⚙️ Produção</div>
+  <div class="tab" onclick="showTab('qualidade',this)">🔍 Qualidade</div>
+  <div class="tab" onclick="showTab('manutencao',this)">🔧 Manutenção</div>
 </div>
 
 <div class="content">
 
-  <!-- PRODUÇÃO -->
-  <div class="section active" id="tab-producao">
+<!-- ===== PRODUÇÃO ===== -->
+<div class="section active" id="tab-producao">
+  <div class="dashboard-view" id="dash-producao">
     <div class="section-header">
       <div class="section-icon orange">⚙️</div>
       <div class="section-label">Produção</div>
     </div>
-
     <div class="grid-2">
-      <div class="card card-accent">
-        <div class="card-label">Qtd Produzida</div>
-        <div class="card-value" id="p-qtd">0</div>
-        <div class="card-unit">peças</div>
-      </div>
-      <div class="card card-accent-blue">
-        <div class="card-label">Registros do Dia</div>
-        <div class="card-value" id="p-reg">0</div>
-        <div class="card-unit">registros</div>
-      </div>
+      <div class="card card-accent"><div class="card-label">Qtd Produzida</div><div class="card-value" id="p-qtd">0</div><div class="card-unit">peças</div></div>
+      <div class="card card-accent-blue"><div class="card-label">Registros</div><div class="card-value" id="p-reg">0</div><div class="card-unit">registros</div></div>
     </div>
-
     <div class="grid-2">
-      <div class="card card-accent">
-        <div class="card-label">Peças / Hora</div>
-        <div class="card-value" id="p-pph">0</div>
-        <div class="card-unit">pçs/h</div>
-      </div>
-      <div class="card card-accent-red">
-        <div class="card-label">Nº de Paradas</div>
-        <div class="card-value" id="p-paradas">0</div>
-        <div class="card-unit">ocorrências</div>
-      </div>
+      <div class="card card-accent"><div class="card-label">Peças / Hora</div><div class="card-value" id="p-pph">0</div><div class="card-unit">pçs/h</div></div>
+      <div class="card card-accent-red"><div class="card-label">Nº Paradas</div><div class="card-value" id="p-paradas">0</div><div class="card-unit">ocorrências</div></div>
     </div>
-
     <div class="grid-2">
-      <div class="card card-accent-green">
-        <div class="card-label">Tempo Produzindo</div>
-        <div class="card-value" id="p-tprod">0</div>
-        <div class="card-unit">minutos</div>
-      </div>
-      <div class="card card-accent-red">
-        <div class="card-label">Tempo Parado</div>
-        <div class="card-value" id="p-tpara">0</div>
-        <div class="card-unit">minutos</div>
-      </div>
+      <div class="card card-accent-green"><div class="card-label">Tempo Produzindo</div><div class="card-value" id="p-tprod">0</div><div class="card-unit">minutos</div></div>
+      <div class="card card-accent-red"><div class="card-label">Tempo Parado</div><div class="card-value" id="p-tpara">0</div><div class="card-unit">minutos</div></div>
     </div>
-
-    <div class="card" style="margin-bottom:10px;">
+    <div class="card mb10">
       <div class="card-label">Disponibilidade</div>
       <div class="disp-wrap">
         <div class="disp-bar-bg"><div class="disp-bar" id="p-disp-bar" style="width:0%"></div></div>
-        <div class="disp-labels">
-          <span>0%</span>
-          <span id="p-disp-val" style="font-weight:700;color:var(--blue)">0%</span>
-          <span>100%</span>
-        </div>
+        <div class="disp-labels"><span>0%</span><span id="p-disp-val" style="font-weight:700;color:var(--blue)">0%</span><span>100%</span></div>
       </div>
     </div>
-
-    <div class="grid-2" style="margin-bottom:10px;">
-      <div class="card card-accent">
-        <div class="card-label">Produto Top</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--orange)" id="p-ptop">—</div>
-      </div>
-      <div class="card card-accent-blue">
-        <div class="card-label">Setor Top</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--blue)" id="p-stop">—</div>
-      </div>
+    <div class="grid-2 mb10">
+      <div class="card card-accent"><div class="card-label">Produto Top</div><div class="top-text" style="color:var(--orange)" id="p-ptop">—</div></div>
+      <div class="card card-accent-blue"><div class="card-label">Setor Top</div><div class="top-text" style="color:var(--blue)" id="p-stop">—</div></div>
     </div>
-
     <div class="chart-wrap">
       <div class="chart-title">🛑 Motivos de Parada</div>
       <canvas id="chart-motivos" height="180"></canvas>
+      <div class="chart-metric" id="metric-motivos"></div>
       <div class="pie-legend" id="legend-motivos"></div>
     </div>
-
-    <button class="btn-refresh" onclick="carregarTudo()">↻ ATUALIZAR DADOS</button>
+    <button class="btn-refresh" onclick="carregarTudo()">↻ ATUALIZAR</button>
+    <button class="btn-relatorio" onclick="abrirRelatorio('producao')">📋 RELATÓRIO</button>
   </div>
-
-  <!-- QUALIDADE -->
-  <div class="section" id="tab-qualidade">
-    <div class="section-header">
-      <div class="section-icon blue">🔍</div>
-      <div class="section-label">Qualidade</div>
+  <div class="relatorio-view" id="rel-producao">
+    <div class="section-header"><div class="section-icon orange">📋</div><div class="section-label">Relatório — Produção</div></div>
+    <div class="filtros-rel visible">
+      <div class="filtros-title">Período</div>
+      <div class="filtros-btns">
+        <button class="filtro-btn active" onclick="setFiltro('producao','diario',this)">Diário</button>
+        <button class="filtro-btn" onclick="setFiltro('producao','semanal',this)">Semanal</button>
+        <button class="filtro-btn" onclick="setFiltro('producao','mensal',this)">Mensal</button>
+      </div>
     </div>
+    <div class="tabela-rel visible"><div class="tabela-title">Registros de Produção</div><div id="tabela-producao-wrap"></div></div>
+    <button class="btn-voltar" onclick="fecharRelatorio('producao')">← VOLTAR AO DASHBOARD</button>
+  </div>
+</div>
 
+<!-- ===== QUALIDADE ===== -->
+<div class="section" id="tab-qualidade">
+  <div class="dashboard-view" id="dash-qualidade">
+    <div class="section-header"><div class="section-icon blue">🔍</div><div class="section-label">Qualidade</div></div>
     <div class="grid-2">
-      <div class="card card-accent-blue">
-        <div class="card-label">Total Inspecionado</div>
-        <div class="card-value" id="q-insp">0</div>
-        <div class="card-unit">peças</div>
-      </div>
-      <div class="card card-accent-green">
-        <div class="card-label">Total Aprovado</div>
-        <div class="card-value" id="q-aprov">0</div>
-        <div class="card-unit">peças</div>
-      </div>
+      <div class="card card-accent-blue"><div class="card-label">Total Inspecionado</div><div class="card-value" id="q-insp">0</div><div class="card-unit">peças</div></div>
+      <div class="card card-accent-green"><div class="card-label">Total Aprovado</div><div class="card-value" id="q-aprov">0</div><div class="card-unit">peças</div></div>
     </div>
-
     <div class="grid-2">
-      <div class="card card-accent-red">
-        <div class="card-label">Total Reprovado</div>
-        <div class="card-value" id="q-reprov">0</div>
-        <div class="card-unit">peças</div>
-      </div>
-      <div class="card card-accent-blue">
-        <div class="card-label">Registros do Dia</div>
-        <div class="card-value" id="q-reg">0</div>
-        <div class="card-unit">registros</div>
-      </div>
+      <div class="card card-accent-red"><div class="card-label">Total Reprovado</div><div class="card-value" id="q-reprov">0</div><div class="card-unit">peças</div></div>
+      <div class="card card-accent-blue"><div class="card-label">Registros</div><div class="card-value" id="q-reg">0</div><div class="card-unit">registros</div></div>
     </div>
-
-    <div class="card" style="margin-bottom:10px;">
+    <div class="card mb10">
       <div class="card-label">Taxa de Qualidade</div>
       <div class="gauge-wrap">
         <svg class="gauge-svg" viewBox="0 0 120 70">
@@ -477,398 +207,310 @@
         <div class="gauge-value" id="q-taxa">0%</div>
         <div class="gauge-label">Aprovado / Inspecionado</div>
       </div>
-      <div class="meta-badge" id="q-meta-wrap"></div>
+      <div style="margin-top:6px" id="q-meta-wrap"></div>
     </div>
-
-    <div class="grid-2" style="margin-bottom:10px;">
-      <div class="card card-accent">
-        <div class="card-label">Defeito Top</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--orange)" id="q-defeito">—</div>
-      </div>
-      <div class="card card-accent-red">
-        <div class="card-label">Produto c/ + Rejeição</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--red)" id="q-prodrejeicao">—</div>
-      </div>
+    <div class="grid-2 mb10">
+      <div class="card card-accent"><div class="card-label">Defeito Top</div><div class="top-text" style="color:var(--orange)" id="q-defeito">—</div></div>
+      <div class="card card-accent-red"><div class="card-label">Produto c/ + Rejeição</div><div class="top-text" style="color:var(--red)" id="q-prodrejeicao">—</div></div>
     </div>
-
-    <div class="card" style="margin-bottom:10px;">
-      <div class="card-label">Setor c/ + Rejeição</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--blue)" id="q-setorrejeicao">—</div>
-    </div>
-
+    <div class="card mb10"><div class="card-label">Setor c/ + Rejeição</div><div class="top-text" style="color:var(--blue)" id="q-setorrejeicao">—</div></div>
     <div class="chart-wrap">
       <div class="chart-title">🔺 Criticidade</div>
       <canvas id="chart-criticidade" height="180"></canvas>
+      <div class="chart-metric" id="metric-criticidade"></div>
       <div class="pie-legend" id="legend-criticidade"></div>
     </div>
-
     <div class="chart-wrap">
       <div class="chart-title">📊 Defeitos por Tipo</div>
       <canvas id="chart-defeitos" height="180"></canvas>
+      <div class="chart-metric" id="metric-defeitos"></div>
     </div>
-
-    <button class="btn-refresh" onclick="carregarTudo()">↻ ATUALIZAR DADOS</button>
+    <button class="btn-refresh" onclick="carregarTudo()">↻ ATUALIZAR</button>
+    <button class="btn-relatorio" onclick="abrirRelatorio('qualidade')">📋 RELATÓRIO</button>
   </div>
-
-  <!-- MANUTENÇÃO -->
-  <div class="section" id="tab-manutencao">
-    <div class="section-header">
-      <div class="section-icon green">🔧</div>
-      <div class="section-label">Manutenção</div>
+  <div class="relatorio-view" id="rel-qualidade">
+    <div class="section-header"><div class="section-icon blue">📋</div><div class="section-label">Relatório — Qualidade</div></div>
+    <div class="filtros-rel visible">
+      <div class="filtros-title">Período</div>
+      <div class="filtros-btns">
+        <button class="filtro-btn active" onclick="setFiltro('qualidade','diario',this)">Diário</button>
+        <button class="filtro-btn" onclick="setFiltro('qualidade','semanal',this)">Semanal</button>
+        <button class="filtro-btn" onclick="setFiltro('qualidade','mensal',this)">Mensal</button>
+      </div>
     </div>
+    <div class="tabela-rel visible"><div class="tabela-title">Registros de Qualidade</div><div id="tabela-qualidade-wrap"></div></div>
+    <button class="btn-voltar" onclick="fecharRelatorio('qualidade')">← VOLTAR AO DASHBOARD</button>
+  </div>
+</div>
 
+<!-- ===== MANUTENÇÃO ===== -->
+<div class="section" id="tab-manutencao">
+  <div class="dashboard-view" id="dash-manutencao">
+    <div class="section-header"><div class="section-icon green">🔧</div><div class="section-label">Manutenção</div></div>
     <div class="grid-2">
-      <div class="card card-accent-blue">
-        <div class="card-label">Total Chamados</div>
-        <div class="card-value" id="m-total">0</div>
-        <div class="card-unit">chamados</div>
-      </div>
-      <div class="card card-accent">
-        <div class="card-label">Chamados do Dia</div>
-        <div class="card-value" id="m-dia">0</div>
-        <div class="card-unit">hoje</div>
-      </div>
+      <div class="card card-accent-blue"><div class="card-label">Total Chamados</div><div class="card-value" id="m-total">0</div><div class="card-unit">chamados</div></div>
+      <div class="card card-accent"><div class="card-label">Chamados do Dia</div><div class="card-value" id="m-dia">0</div><div class="card-unit">hoje</div></div>
     </div>
-
     <div class="grid-2">
-      <div class="card card-accent-red">
-        <div class="card-label">Abertos</div>
-        <div class="card-value" id="m-abertos">0</div>
-        <div class="card-unit">em andamento</div>
-      </div>
-      <div class="card card-accent-green">
-        <div class="card-label">Fechados</div>
-        <div class="card-value" id="m-fechados">0</div>
-        <div class="card-unit">resolvidos</div>
-      </div>
+      <div class="card card-accent-red"><div class="card-label">Abertos</div><div class="card-value" id="m-abertos">0</div><div class="card-unit">em andamento</div></div>
+      <div class="card card-accent-green"><div class="card-label">Fechados</div><div class="card-value" id="m-fechados">0</div><div class="card-unit">resolvidos</div></div>
     </div>
-
     <div class="grid-2">
-      <div class="card card-accent-blue">
-        <div class="card-label">Tempo Médio Atend.</div>
-        <div class="card-value" id="m-tmed">—</div>
-        <div class="card-unit">minutos</div>
-      </div>
-      <div class="card card-accent-red">
-        <div class="card-label">Tempo Total Parado</div>
-        <div class="card-value" id="m-ttotal">0</div>
-        <div class="card-unit">minutos</div>
-      </div>
+      <div class="card card-accent-blue"><div class="card-label">Tempo Médio Atend.</div><div class="card-value" id="m-tmed">—</div><div class="card-unit">minutos</div></div>
+      <div class="card card-accent-red"><div class="card-label">Tempo Total Parado</div><div class="card-value" id="m-ttotal">0</div><div class="card-unit">minutos</div></div>
     </div>
-
-    <div class="card" style="margin-bottom:10px;">
+    <div class="card mb10">
       <div class="card-label">Disponibilidade da Linha</div>
       <div class="disp-wrap">
         <div class="disp-bar-bg"><div class="disp-bar" id="m-disp-bar" style="width:0%;background:linear-gradient(90deg,var(--green),#00cc66)"></div></div>
-        <div class="disp-labels">
-          <span>0%</span>
-          <span id="m-disp-val" style="font-weight:700;color:var(--green)">0%</span>
-          <span>100%</span>
-        </div>
+        <div class="disp-labels"><span>0%</span><span id="m-disp-val" style="font-weight:700;color:var(--green)">0%</span><span>100%</span></div>
       </div>
     </div>
-
-    <div class="grid-2" style="margin-bottom:10px;">
-      <div class="card card-accent">
-        <div class="card-label">Tipo Top</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--orange)" id="m-tipotop">—</div>
-      </div>
-      <div class="card card-accent-blue">
-        <div class="card-label">Setor c/ + Chamados</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--blue)" id="m-setortop">—</div>
-      </div>
+    <div class="grid-2 mb10">
+      <div class="card card-accent"><div class="card-label">Tipo Top</div><div class="top-text" style="color:var(--orange)" id="m-tipotop">—</div></div>
+      <div class="card card-accent-blue"><div class="card-label">Setor c/ + Chamados</div><div class="top-text" style="color:var(--blue)" id="m-setortop">—</div></div>
     </div>
-
     <div class="ranking-card">
       <div class="ranking-title">👷 Técnicos que mais resolveram</div>
       <div id="m-tecnicos"><div style="color:var(--text-muted);font-size:13px;">Sem dados</div></div>
     </div>
-
     <div class="chart-wrap">
       <div class="chart-title">📋 Chamados por Tipo</div>
       <canvas id="chart-tipos" height="180"></canvas>
+      <div class="chart-metric" id="metric-tipos"></div>
       <div class="pie-legend" id="legend-tipos"></div>
     </div>
-
-    <button class="btn-refresh" onclick="carregarTudo()">↻ ATUALIZAR DADOS</button>
+    <button class="btn-refresh" onclick="carregarTudo()">↻ ATUALIZAR</button>
+    <button class="btn-relatorio" onclick="abrirRelatorio('manutencao')">📋 RELATÓRIO</button>
   </div>
+  <div class="relatorio-view" id="rel-manutencao">
+    <div class="section-header"><div class="section-icon green">📋</div><div class="section-label">Relatório — Manutenção</div></div>
+    <div class="filtros-rel visible">
+      <div class="filtros-title">Período</div>
+      <div class="filtros-btns">
+        <button class="filtro-btn active" onclick="setFiltro('manutencao','diario',this)">Diário</button>
+        <button class="filtro-btn" onclick="setFiltro('manutencao','semanal',this)">Semanal</button>
+        <button class="filtro-btn" onclick="setFiltro('manutencao','mensal',this)">Mensal</button>
+      </div>
+    </div>
+    <div class="tabela-rel visible"><div class="tabela-title">Registros de Manutenção</div><div id="tabela-manutencao-wrap"></div></div>
+    <button class="btn-voltar" onclick="fecharRelatorio('manutencao')">← VOLTAR AO DASHBOARD</button>
+  </div>
+</div>
 
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-const URL_PRODUCAO   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=0&single=true&output=csv';
-const URL_QUALIDADE  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=910958963&single=true&output=csv';
-const URL_MANUTENCAO = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
+const URL_PRODUCAO='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=0&single=true&output=csv';
+const URL_QUALIDADE='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=910958963&single=true&output=csv';
+const URL_MANUTENCAO='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
+const CORES=['#FF6600','#004A99','#00a651','#e63946','#f4a261','#0066CC','#9b2335','#2d6a4f'];
+let dadosP=[],dadosQ=[],dadosM=[];
+let filtros={producao:'diario',qualidade:'diario',manutencao:'diario'};
 
-const CORES = ['#FF6600','#004A99','#00a651','#e63946','#f4a261','#0066CC','#9b2335','#2d6a4f'];
+function hoje(){return new Date().toISOString().split('T')[0];}
+function inicioSemana(){const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split('T')[0];}
+function inicioMes(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;}
 
-let chartMotivos = null, chartCriticidade = null, chartDefeitos = null, chartTipos = null;
-
-function showTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  event.target.classList.add('active');
+function filtrarPeriodo(rows,campo,p){
+  const hj=hoje();
+  if(p==='diario') return rows.filter(r=>r[campo]===hj);
+  if(p==='semanal') return rows.filter(r=>r[campo]>=inicioSemana());
+  if(p==='mensal') return rows.filter(r=>r[campo]>=inicioMes());
+  return rows;
 }
 
-async function fetchCSV(url) {
-  const r = await fetch(url);
-  const txt = await r.text();
-  const lines = txt.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/\r/g,''));
-  return lines.slice(1).map(line => {
-    const vals = line.split(',');
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = (vals[i]||'').trim().replace(/\r/g,''));
+function topItem(arr){
+  if(!arr.length) return '—';
+  const c={};arr.forEach(v=>c[v]=(c[v]||0)+1);
+  return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];
+}
+function contar(arr){const c={};arr.forEach(v=>{if(v)c[v]=(c[v]||0)+1;});return c;}
+
+async function fetchCSV(url){
+  const r=await fetch(url);const txt=await r.text();
+  const lines=txt.trim().split('\n');
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/\r/g,''));
+  return lines.slice(1).map(line=>{
+    const vals=line.split(',');const obj={};
+    headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim().replace(/\r/g,''));
     return obj;
-  }).filter(r => r.empresaid && r.empresaid !== '');
+  }).filter(r=>r.empresaid&&r.empresaid!=='');
 }
 
-function hoje() {
-  const d = new Date();
-  return d.toISOString().split('T')[0];
+function showTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  el.classList.add('active');
 }
 
-function topItem(arr) {
-  if (!arr.length) return '—';
-  const cnt = {};
-  arr.forEach(v => cnt[v] = (cnt[v]||0)+1);
-  return Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
+function abrirRelatorio(s){
+  document.getElementById('dash-'+s).classList.add('hidden');
+  document.getElementById('rel-'+s).classList.add('visible');
+  renderTabela(s,filtros[s]);
+  window.scrollTo(0,0);
+}
+function fecharRelatorio(s){
+  document.getElementById('dash-'+s).classList.remove('hidden');
+  document.getElementById('rel-'+s).classList.remove('visible');
+  window.scrollTo(0,0);
+}
+function setFiltro(s,p,btn){
+  filtros[s]=p;
+  btn.closest('.filtros-btns').querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabela(s,p);
+}
+function renderTabela(s,p){
+  if(s==='producao') renderTabelaP(p);
+  if(s==='qualidade') renderTabelaQ(p);
+  if(s==='manutencao') renderTabelaM(p);
 }
 
-function contarItens(arr) {
-  const cnt = {};
-  arr.forEach(v => { if(v) cnt[v] = (cnt[v]||0)+1; });
-  return cnt;
+function renderTabelaP(p){
+  const rows=filtrarPeriodo(dadosP,'data',p);
+  const w=document.getElementById('tabela-producao-wrap');
+  if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
+  w.innerHTML=`<table><tr><th>Data</th><th>Setor</th><th>Produto</th><th>Qtd</th><th>Status</th><th>Motivo</th></tr>
+  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td>
+  <td class="td-${r.status}">${r.status||'—'}</td><td>${r.motivo_parada||'—'}</td></tr>`).join('')}</table>`;
+}
+function renderTabelaQ(p){
+  const rows=filtrarPeriodo(dadosQ,'data',p);
+  const w=document.getElementById('tabela-qualidade-wrap');
+  if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
+  w.innerHTML=`<table><tr><th>Data</th><th>Setor</th><th>Produto</th><th>Qtd</th><th>Reprov</th><th>Defeito</th><th>Crit.</th></tr>
+  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td>
+  <td>${r.reprovado||0}</td><td>${r.defeito||'—'}</td><td>${r.criticidade||'—'}</td></tr>`).join('')}</table>`;
+}
+function renderTabelaM(p){
+  const w=document.getElementById('tabela-manutencao-wrap');
+  if(!dadosM.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
+  w.innerHTML=`<table><tr><th>ID</th><th>Setor</th><th>Tipo</th><th>Status</th><th>Aberto por</th><th>Resolvido por</th></tr>
+  ${dadosM.map(r=>`<tr><td>${r.id||'—'}</td><td>${r.setorid}</td><td>${r.tipo||'—'}</td>
+  <td class="td-${r.status}">${r.status||'—'}</td><td>${r.aberto_por||'—'}</td><td>${r.resolvido_por||'—'}</td></tr>`).join('')}</table>`;
 }
 
-function renderPie(canvasId, legendId, labels, values, colors) {
-  const ctx = document.getElementById(canvasId).getContext('2d');
-  const existing = Chart.getChart(canvasId);
-  if (existing) existing.destroy();
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } },
-      cutout: '60%'
-    }
+function renderPie(cid,lid,mid,labels,values,colors){
+  const ctx=document.getElementById(cid).getContext('2d');
+  const ex=Chart.getChart(cid);if(ex)ex.destroy();
+  const total=values.reduce((a,b)=>a+b,0);
+  new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/total*100)}%)`}}},cutout:'60%'}});
+  if(lid) document.getElementById(lid).innerHTML=labels.map((l,i)=>`<div class="pie-legend-item"><div class="pie-dot" style="background:${colors[i]}"></div>${l}: <strong>${values[i]}</strong> (${Math.round(values[i]/total*100)}%)</div>`).join('');
+  if(mid) document.getElementById(mid).innerHTML=`Total: <span>${total}</span>`;
+}
+
+function renderBar(cid,mid,labels,values,color){
+  const ctx=document.getElementById(cid).getContext('2d');
+  const ex=Chart.getChart(cid);if(ex)ex.destroy();
+  new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:values,backgroundColor:color||'#004A99',borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}},grid:{color:'#E6F0FA'}},x:{ticks:{font:{size:10},maxRotation:30},grid:{display:false}}}}});
+  if(mid&&values.length){const maxV=Math.max(...values);const maxL=labels[values.indexOf(maxV)];
+    document.getElementById(mid).innerHTML=`Total: <span>${values.reduce((a,b)=>a+b,0)}</span> | Top: <span>${maxL} (${maxV})</span>`;}
+}
+
+async function carregarProducao(){
+  dadosP=await fetchCSV(URL_PRODUCAO);
+  const rows=filtrarPeriodo(dadosP,'data','diario');
+  const qtd=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
+  const paradas=rows.filter(r=>r.status==='parado').length;
+  let tP=0,tPar=0;
+  rows.forEach(r=>{
+    const ini=parseInt(r.hora_inicio)||0,fim=parseInt(r.hora_fim)||0;
+    if(ini&&fim&&fim>ini){const d=fim-ini;const h=Math.floor(d/10000),m=Math.floor((d%10000)/100),s=d%100;const mins=h*60+m+s/60;
+      if(r.status==='parado')tPar+=mins;else tP+=mins;}
   });
-  if (legendId) {
-    const leg = document.getElementById(legendId);
-    leg.innerHTML = labels.map((l,i) => `<div class="pie-legend-item"><div class="pie-dot" style="background:${colors[i]}"></div>${l}: ${values[i]}</div>`).join('');
-  }
+  const tot=tP+tPar,disp=tot>0?Math.round(tP/tot*100):0,pph=tP>0?Math.round(qtd/(tP/60)):0;
+  document.getElementById('p-qtd').textContent=qtd;
+  document.getElementById('p-reg').textContent=rows.length;
+  document.getElementById('p-pph').textContent=pph;
+  document.getElementById('p-paradas').textContent=paradas;
+  document.getElementById('p-tprod').textContent=Math.round(tP);
+  document.getElementById('p-tpara').textContent=Math.round(tPar);
+  document.getElementById('p-disp-bar').style.width=disp+'%';
+  document.getElementById('p-disp-val').textContent=disp+'%';
+  document.getElementById('p-ptop').textContent=topItem(rows.map(r=>r.produto).filter(Boolean));
+  const st=topItem(rows.map(r=>r.setorid).filter(Boolean));
+  document.getElementById('p-stop').textContent=st?'Setor '+st:'—';
+  const motivos=rows.filter(r=>r.status==='parado').map(r=>r.motivo_parada).filter(Boolean);
+  const cnt=contar(motivos);const mL=Object.keys(cnt),mV=Object.values(cnt);
+  if(mL.length) renderPie('chart-motivos','legend-motivos','metric-motivos',mL,mV,CORES.slice(0,mL.length));
 }
 
-function renderBar(canvasId, labels, values, color) {
-  const ctx = document.getElementById(canvasId).getContext('2d');
-  const existing = Chart.getChart(canvasId);
-  if (existing) existing.destroy();
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data: values, backgroundColor: color || '#004A99', borderRadius: 6 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { font: { size: 11 } }, grid: { color: '#E6F0FA' } },
-        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
-      }
-    }
+async function carregarQualidade(){
+  dadosQ=await fetchCSV(URL_QUALIDADE);
+  const rows=filtrarPeriodo(dadosQ,'data','diario');
+  const insp=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
+  const aprov=rows.reduce((s,r)=>s+(parseInt(r.aprovado)||0),0);
+  const reprov=rows.reduce((s,r)=>s+(parseInt(r.reprovado)||0),0);
+  const taxa=insp>0?Math.round(aprov/insp*100):0;
+  document.getElementById('q-insp').textContent=insp;
+  document.getElementById('q-aprov').textContent=aprov;
+  document.getElementById('q-reprov').textContent=reprov;
+  document.getElementById('q-reg').textContent=rows.length;
+  document.getElementById('q-taxa').textContent=taxa+'%';
+  const arc=document.getElementById('gauge-arc');
+  arc.setAttribute('stroke-dashoffset',157-(157*taxa/100));
+  arc.setAttribute('stroke',taxa>=95?'var(--green)':taxa>=80?'var(--orange)':'var(--red)');
+  document.getElementById('q-meta-wrap').innerHTML=`<span class="badge ${taxa>=95?'badge-green':'badge-red'}">${taxa>=95?'✓ Meta atingida (≥95%)':'✗ Abaixo da meta (≥95%)'}</span>`;
+  document.getElementById('q-defeito').textContent=topItem(rows.map(r=>r.defeito).filter(Boolean));
+  const rP={};rows.forEach(r=>{if(r.produto)rP[r.produto]=(rP[r.produto]||0)+(parseInt(r.reprovado)||0);});
+  const tP=Object.entries(rP).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('q-prodrejeicao').textContent=tP?tP[0]:'—';
+  const rS={};rows.forEach(r=>{if(r.setorid)rS[r.setorid]=(rS[r.setorid]||0)+(parseInt(r.reprovado)||0);});
+  const tS=Object.entries(rS).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('q-setorrejeicao').textContent=tS?'Setor '+tS[0]:'—';
+  const crit=contar(rows.map(r=>r.criticidade).filter(Boolean));
+  const cL=Object.keys(crit),cV=Object.values(crit);
+  if(cL.length) renderPie('chart-criticidade','legend-criticidade','metric-criticidade',cL,cV,['#e63946','#FF6600','#f4a261']);
+  const def=contar(rows.map(r=>r.defeito).filter(Boolean));
+  const dL=Object.keys(def),dV=Object.values(def);
+  if(dL.length) renderBar('chart-defeitos','metric-defeitos',dL,dV,'#004A99');
+}
+
+async function carregarManutencao(){
+  dadosM=await fetchCSV(URL_MANUTENCAO);
+  const rows=dadosM;
+  const abertos=rows.filter(r=>r.status==='aberto').length;
+  const fechados=rows.filter(r=>r.status==='fechado').length;
+  let somaT=0,contF=0;
+  rows.filter(r=>r.status==='fechado'&&r.hora_abertura&&r.hora_fechamento).forEach(r=>{
+    const ini=parseInt(r.hora_abertura)||0,fim=parseInt(r.hora_fechamento)||0;
+    if(fim>ini){const d=fim-ini;somaT+=Math.floor(d/10000)*60+Math.floor((d%10000)/100);contF++;}
   });
+  const tMed=contF>0?Math.round(somaT/contF):0;
+  const tTotal=rows.reduce((s,r)=>s+(parseFloat(r.tempo_parado)||0),0);
+  const disp=rows.length>0?Math.round(fechados/rows.length*100):100;
+  document.getElementById('m-total').textContent=rows.length;
+  document.getElementById('m-dia').textContent=rows.length;
+  document.getElementById('m-abertos').textContent=abertos;
+  document.getElementById('m-fechados').textContent=fechados;
+  document.getElementById('m-tmed').textContent=tMed||'—';
+  document.getElementById('m-ttotal').textContent=Math.round(tTotal);
+  document.getElementById('m-disp-bar').style.width=disp+'%';
+  document.getElementById('m-disp-val').textContent=disp+'%';
+  document.getElementById('m-tipotop').textContent=topItem(rows.map(r=>r.tipo).filter(Boolean));
+  const st=topItem(rows.map(r=>r.setorid).filter(Boolean));
+  document.getElementById('m-setortop').textContent=st?'Setor '+st:'—';
+  const tecC=contar(rows.filter(r=>r.resolvido_por).map(r=>r.resolvido_por));
+  const tecE=Object.entries(tecC).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxT=tecE[0]?.[1]||1;
+  document.getElementById('m-tecnicos').innerHTML=tecE.length?tecE.map(([n,c])=>`<div class="ranking-item"><div class="ranking-name">${n}</div><div class="ranking-bar-wrap"><div class="ranking-bar" style="width:${c/maxT*100}%"></div></div><div class="ranking-val">${c}</div></div>`).join(''):'<div style="color:var(--text-muted);font-size:13px;">Sem dados</div>';
+  const tC=contar(rows.map(r=>r.tipo).filter(Boolean));
+  const tL=Object.keys(tC),tV=Object.values(tC);
+  if(tL.length) renderPie('chart-tipos','legend-tipos','metric-tipos',tL,tV,['#FF6600','#004A99','#00a651']);
 }
 
-async function carregarProducao() {
-  const rows = await fetchCSV(URL_PRODUCAO);
-  const hj = hoje();
-  const rowsHoje = rows.filter(r => r.data === hj);
-
-  const qtd = rowsHoje.reduce((s,r) => s + (parseInt(r.quantidade)||0), 0);
-  const reg = rowsHoje.length;
-  const paradas = rowsHoje.filter(r => r.status === 'parado').length;
-
-  // tempo produzindo: registros trabalhando com hora_inicio e hora_fim
-  let tProd = 0, tPara = 0;
-  rowsHoje.forEach(r => {
-    const ini = r.hora_inicio ? parseInt(r.hora_inicio) : 0;
-    const fim = r.hora_fim ? parseInt(r.hora_fim) : 0;
-    if (ini && fim && fim > ini) {
-      const diff = fim - ini; // segundos em formato HHmmss
-      const h = Math.floor(diff/10000), m = Math.floor((diff%10000)/100), s = diff%100;
-      const mins = h*60 + m + s/60;
-      if (r.status === 'parado') tPara += mins;
-      else tProd += mins;
-    }
-  });
-  const total = tProd + tPara;
-  const disp = total > 0 ? Math.round(tProd/total*100) : 0;
-  const pph = tProd > 0 ? Math.round(qtd / (tProd/60)) : 0;
-
-  document.getElementById('p-qtd').textContent = qtd;
-  document.getElementById('p-reg').textContent = reg;
-  document.getElementById('p-pph').textContent = pph;
-  document.getElementById('p-paradas').textContent = paradas;
-  document.getElementById('p-tprod').textContent = Math.round(tProd);
-  document.getElementById('p-tpara').textContent = Math.round(tPara);
-  document.getElementById('p-disp-bar').style.width = disp + '%';
-  document.getElementById('p-disp-val').textContent = disp + '%';
-
-  const produtos = rowsHoje.map(r => r.produto).filter(Boolean);
-  const setores = rowsHoje.map(r => r.setorid).filter(Boolean);
-  document.getElementById('p-ptop').textContent = topItem(produtos);
-  document.getElementById('p-stop').textContent = topItem(setores) ? 'Setor ' + topItem(setores) : '—';
-
-  // pizza motivos
-  const motivos = rowsHoje.filter(r => r.status === 'parado').map(r => r.motivo_parada).filter(Boolean);
-  const cntMotivos = contarItens(motivos);
-  const mLabels = Object.keys(cntMotivos);
-  const mVals = Object.values(cntMotivos);
-  if (mLabels.length) {
-    renderPie('chart-motivos', 'legend-motivos', mLabels, mVals, CORES.slice(0, mLabels.length));
-  }
+async function carregarTudo(){
+  document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('pt-BR');
+  await Promise.all([carregarProducao(),carregarQualidade(),carregarManutencao()]);
 }
 
-async function carregarQualidade() {
-  const rows = await fetchCSV(URL_QUALIDADE);
-  const hj = hoje();
-  const rowsHoje = rows.filter(r => r.data === hj);
-
-  const insp = rowsHoje.reduce((s,r) => s + (parseInt(r.quantidade)||0), 0);
-  const aprov = rowsHoje.reduce((s,r) => s + (parseInt(r.aprovado)||0), 0);
-  const reprov = rowsHoje.reduce((s,r) => s + (parseInt(r.reprovado)||0), 0);
-  const reg = rowsHoje.length;
-  const taxa = insp > 0 ? Math.round(aprov/insp*100) : 0;
-
-  document.getElementById('q-insp').textContent = insp;
-  document.getElementById('q-aprov').textContent = aprov;
-  document.getElementById('q-reprov').textContent = reprov;
-  document.getElementById('q-reg').textContent = reg;
-  document.getElementById('q-taxa').textContent = taxa + '%';
-
-  // gauge arc
-  const arc = document.getElementById('gauge-arc');
-  const offset = 157 - (157 * taxa / 100);
-  arc.setAttribute('stroke-dashoffset', offset);
-  arc.setAttribute('stroke', taxa >= 95 ? 'var(--green)' : taxa >= 80 ? 'var(--orange)' : 'var(--red)');
-
-  // meta
-  const metaEl = document.getElementById('q-meta-wrap');
-  const metaAtingida = taxa >= 95;
-  metaEl.innerHTML = `<span class="badge ${metaAtingida ? 'badge-green' : 'badge-red'}">${metaAtingida ? '✓ Meta atingida (≥95%)' : '✗ Abaixo da meta (≥95%)'}</span>`;
-
-  // tops
-  const defeitos = rowsHoje.map(r => r.defeito).filter(Boolean);
-  document.getElementById('q-defeito').textContent = topItem(defeitos);
-
-  // produto com mais rejeição
-  const rejProd = {};
-  rowsHoje.forEach(r => { if(r.produto) rejProd[r.produto] = (rejProd[r.produto]||0) + (parseInt(r.reprovado)||0); });
-  const topProd = Object.entries(rejProd).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('q-prodrejeicao').textContent = topProd ? topProd[0] : '—';
-
-  // setor com mais rejeição
-  const rejSetor = {};
-  rowsHoje.forEach(r => { if(r.setorid) rejSetor[r.setorid] = (rejSetor[r.setorid]||0) + (parseInt(r.reprovado)||0); });
-  const topSetor = Object.entries(rejSetor).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('q-setorrejeicao').textContent = topSetor ? 'Setor ' + topSetor[0] : '—';
-
-  // pizza criticidade
-  const crit = contarItens(rowsHoje.map(r => r.criticidade).filter(Boolean));
-  const critLabels = Object.keys(crit);
-  const critVals = Object.values(crit);
-  if (critLabels.length) renderPie('chart-criticidade', 'legend-criticidade', critLabels, critVals, ['#e63946','#FF6600','#f4a261']);
-
-  // barras defeitos
-  const defCont = contarItens(defeitos);
-  const defLabels = Object.keys(defCont);
-  const defVals = Object.values(defCont);
-  if (defLabels.length) renderBar('chart-defeitos', defLabels, defVals, '#004A99');
-}
-
-async function carregarManutencao() {
-  const rows = await fetchCSV(URL_MANUTENCAO);
-  const hj = hoje();
-
-  const total = rows.length;
-  const abertos = rows.filter(r => r.status === 'aberto').length;
-  const fechados = rows.filter(r => r.status === 'fechado').length;
-
-  // chamados do dia — usando hora_abertura como referência de id (formato HHmmss do dia atual)
-  // Como não temos data separada, contamos todos por enquanto
-  const dia = rows.length; // simplificado
-
-  // tempo médio atendimento (fechados com hora_abertura e hora_fechamento)
-  let somaTempos = 0, contFechados = 0;
-  rows.filter(r => r.status === 'fechado' && r.hora_abertura && r.hora_fechamento).forEach(r => {
-    const ini = parseInt(r.hora_abertura)||0;
-    const fim = parseInt(r.hora_fechamento)||0;
-    if (fim > ini) {
-      const diff = fim - ini;
-      const h = Math.floor(diff/10000), m = Math.floor((diff%10000)/100), s = diff%100;
-      somaTempos += h*60 + m + s/60;
-      contFechados++;
-    }
-  });
-  const tMed = contFechados > 0 ? Math.round(somaTempos/contFechados) : 0;
-
-  // tempo total parado
-  const tTotal = rows.reduce((s,r) => s + (parseFloat(r.tempo_parado)||0), 0);
-
-  // disponibilidade (simplificado: fechados/total)
-  const disp = total > 0 ? Math.round(fechados/total*100) : 100;
-
-  document.getElementById('m-total').textContent = total;
-  document.getElementById('m-dia').textContent = dia;
-  document.getElementById('m-abertos').textContent = abertos;
-  document.getElementById('m-fechados').textContent = fechados;
-  document.getElementById('m-tmed').textContent = tMed || '—';
-  document.getElementById('m-ttotal').textContent = Math.round(tTotal);
-  document.getElementById('m-disp-bar').style.width = disp + '%';
-  document.getElementById('m-disp-val').textContent = disp + '%';
-
-  // tipo top e setor top
-  const tipos = rows.map(r => r.tipo).filter(Boolean);
-  const setores = rows.map(r => r.setorid).filter(Boolean);
-  document.getElementById('m-tipotop').textContent = topItem(tipos);
-  document.getElementById('m-setortop').textContent = topItem(setores) ? 'Setor ' + topItem(setores) : '—';
-
-  // técnicos
-  const tecCont = contarItens(rows.filter(r=>r.resolvido_por).map(r=>r.resolvido_por));
-  const tecEl = document.getElementById('m-tecnicos');
-  const tecEntries = Object.entries(tecCont).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const maxTec = tecEntries[0]?.[1] || 1;
-  if (tecEntries.length) {
-    tecEl.innerHTML = tecEntries.map(([nome,cnt]) => `
-      <div class="ranking-item">
-        <div class="ranking-name">${nome}</div>
-        <div class="ranking-bar-wrap"><div class="ranking-bar" style="width:${cnt/maxTec*100}%"></div></div>
-        <div class="ranking-val">${cnt}</div>
-      </div>`).join('');
-  } else {
-    tecEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Sem dados</div>';
-  }
-
-  // pizza tipos
-  const tipoCont = contarItens(tipos);
-  const tipoLabels = Object.keys(tipoCont);
-  const tipoVals = Object.values(tipoCont);
-  if (tipoLabels.length) renderPie('chart-tipos', 'legend-tipos', tipoLabels, tipoVals, ['#FF6600','#004A99','#00a651']);
-}
-
-async function carregarTudo() {
-  const now = new Date();
-  document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('pt-BR');
-  await Promise.all([carregarProducao(), carregarQualidade(), carregarManutencao()]);
-}
-
-// Auto refresh a cada 60s
 carregarTudo();
-setInterval(carregarTudo, 60000);
+setInterval(carregarTudo,60000);
 </script>
 </body>
 </html>
