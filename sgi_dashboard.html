@@ -302,10 +302,13 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-const URL_PRODUCAO='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=0&single=true&output=csv';
-const URL_QUALIDADE='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=910958963&single=true&output=csv';
-const URL_MANUTENCAO='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
+const BASE_P='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=0&single=true&output=csv';
+const BASE_Q='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=910958963&single=true&output=csv';
+const BASE_M='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
 const CORES=['#FF6600','#004A99','#00a651','#e63946','#f4a261','#0066CC','#9b2335','#2d6a4f'];
+
+function bust(url){return url+'&t='+Date.now();}
+
 let dadosP=[],dadosQ=[],dadosM=[];
 let filtros={producao:'diario',qualidade:'diario',manutencao:'diario'};
 
@@ -329,7 +332,7 @@ function topItem(arr){
 function contar(arr){const c={};arr.forEach(v=>{if(v)c[v]=(c[v]||0)+1;});return c;}
 
 async function fetchCSV(url){
-  const r=await fetch(url);const txt=await r.text();
+  const r=await fetch(bust(url));const txt=await r.text();
   const lines=txt.trim().split('\n');
   const headers=lines[0].split(',').map(h=>h.trim().replace(/\r/g,''));
   return lines.slice(1).map(line=>{
@@ -413,7 +416,7 @@ function renderBar(cid,mid,labels,values,color){
 }
 
 async function carregarProducao(){
-  dadosP=await fetchCSV(URL_PRODUCAO);
+  dadosP=await fetchCSV(BASE_P);
   const rows=filtrarPeriodo(dadosP,'data','diario');
   const qtd=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
   const paradas=rows.filter(r=>r.status==='parado').length;
@@ -441,7 +444,7 @@ async function carregarProducao(){
 }
 
 async function carregarQualidade(){
-  dadosQ=await fetchCSV(URL_QUALIDADE);
+  dadosQ=await fetchCSV(BASE_Q);
   const rows=filtrarPeriodo(dadosQ,'data','diario');
   const insp=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
   const aprov=rows.reduce((s,r)=>s+(parseInt(r.aprovado)||0),0);
@@ -472,7 +475,7 @@ async function carregarQualidade(){
 }
 
 async function carregarManutencao(){
-  dadosM=await fetchCSV(URL_MANUTENCAO);
+  dadosM=await fetchCSV(BASE_M);
   const rows=dadosM;
   const abertos=rows.filter(r=>r.status==='aberto').length;
   const fechados=rows.filter(r=>r.status==='fechado').length;
