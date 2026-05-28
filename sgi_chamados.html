@@ -182,10 +182,10 @@ function renderLista(){
     const tempoFormatado=r.tempo_parado?formatarTempoParado(r.tempo_parado):'—';
     const idKodular=(r.setorid||'')+(r.id||'');
     return `
-    <div class="chamado-card ${r.status}">
+    <div class="chamado-card ${r.status}" onclick="const d=document.getElementById('desc-${idKodular}');if(d)d.style.display=d.style.display==='none'?'block':'none'">
       <div class="chamado-header">
         <div class="chamado-id-wrap">
-          <div class="chamado-id-kodular">📋 ${idKodular}</div>
+          <div class="chamado-id-kodular">📋 ID: ${idKodular}</div>
         </div>
         <div class="chamado-status ${r.status}">${r.status}</div>
       </div>
@@ -197,6 +197,7 @@ function renderLista(){
         ${r.status==='fechado'?`<span>✅ ${r.resolvido_por||'—'}</span>`:''}
       </div>
       ${r.tempo_parado?`<div class="tempo-parado ${r.status}">⏱ Tempo parado: ${tempoFormatado}</div>`:''}
+      ${r.descricao?`<div class="chamado-descricao" id="desc-${idKodular}" style="display:none;margin-top:8px;padding:8px;background:#f0f6ff;border-radius:6px;font-size:12px;color:var(--text);">📝 ${r.descricao}</div>`:''}
     </div>
   `}).join('');
 }
