@@ -116,6 +116,7 @@
 </div>
 
 <script>
+function toggleDesc(id){const d=document.getElementById('desc-'+id);if(d)d.style.display=d.style.display==='none'?'block':'none';}
 const URL_M='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
 
 let dadosM=[];
@@ -182,7 +183,7 @@ function renderLista(){
     const tempoFormatado=r.tempo_parado?formatarTempoParado(r.tempo_parado):'—';
     const idKodular=(r.setorid||'')+(r.id||'');
     return `
-    <div class="chamado-card ${r.status}" onclick="const d=document.getElementById('desc-${idKodular}');if(d)d.style.display=d.style.display==='none'?'block':'none'">
+    <div class="chamado-card ${r.status}" onclick="toggleDesc('${idKodular}')">
       <div class="chamado-header">
         <div class="chamado-id-wrap">
           <div class="chamado-id-kodular">📋 ID: ${idKodular}</div>
