@@ -181,7 +181,8 @@ function renderLista(){
   if(!rows.length){lista.innerHTML='<div class="empty-msg">Nenhum chamado encontrado</div>';return;}
   lista.innerHTML=rows.map(r=>{
     const tempoFormatado=r.tempo_parado?formatarTempoParado(r.tempo_parado):'—';
-    const idKodular=(r.setorid||'')+(r.data_reg||'').replace(/-/g,'')+(r.id||'');
+    var dataLimpa=(r.data_reg||'').split('-').join('');
+    const idKodular=(r.setorid||'')+dataLimpa+(r.id||'');
     return `
     <div class="chamado-card ${r.status}" onclick="toggleDesc('${idKodular}')">
       <div class="chamado-header">
