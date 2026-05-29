@@ -195,7 +195,7 @@ function renderLista(){
       <div class="chamado-info">
         <span>🏭 Setor ${r.setorid||'—'}</span>
         <span>👤 ${r.aberto_por||'—'}</span>
-        <span>🕐 ${r.hora_abertura||'—'}</span>
+        <span>🕐 ${r.hora_abertura?r.hora_abertura.toString().padStart(6,'0').replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3'):'—'}</span>
         ${r.status==='fechado'?`<span>✅ ${r.resolvido_por||'—'}</span>`:''}
       </div>
       ${r.tempo_parado?`<div class="tempo-parado ${r.status}">⏱ Tempo parado: ${tempoFormatado}</div>`:''}
