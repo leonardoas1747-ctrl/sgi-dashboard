@@ -183,11 +183,12 @@ function renderLista(){
     const tempoFormatado=r.tempo_parado?formatarTempoParado(r.tempo_parado):'—';
     var dataLimpa=(r.data||'').split('-').join('');
     const idKodular=(r.setorid||'')+dataLimpa+(r.id||'');
+    const idExibir=(r.setorid||'')+(r.id||'');
     return `
     <div class="chamado-card ${r.status}" onclick="toggleDesc('${idKodular}')">
       <div class="chamado-header">
         <div class="chamado-id-wrap">
-          <div class="chamado-id-kodular">📋 ID: ${idKodular}</div>
+          <div class="chamado-id-kodular">📋 ID: ${idExibir}</div>
         </div>
         <div class="chamado-status ${r.status}">${r.status}</div>
       </div>
