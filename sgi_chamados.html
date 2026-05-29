@@ -175,15 +175,26 @@ function filtrarDados(){
   return rows;
 }
 
+function calcularTempoParado(horaAb, horaFech){
+  const ab=parseInt((horaAb||'0').toString().replace(/"/g,'').trim())||0;
+  const fech=parseInt((horaFech||'0').toString().replace(/"/g,'').trim())||0;
+  if(!ab||!fech) return null;
+  const diff=fech-ab;
+  if(diff<=0) return null;
+  return formatarTempoParado(diff);
+}
+
 function renderLista(){
   const rows=filtrarDados();
   const lista=document.getElementById('lista-chamados');
   if(!rows.length){lista.innerHTML='<div class="empty-msg">Nenhum chamado encontrado</div>';return;}
   lista.innerHTML=rows.map(r=>{
-    const tempoFormatado=r.tempo_parado?formatarTempoParado(r.tempo_parado):'—';
     var dataLimpa=(r.data||'').split('-').join('');
     const idKodular=(r.setorid||'')+dataLimpa+(r.id||'');
     const idExibir=(r.setorid||'')+(r.id||'');
+    const horaAbFormatada=r.hora_abertura?r.hora_abertura.toString().padStart(6,'0').replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3'):'—';
+    const horaFechFormatada=r.hora_fechamento?r.hora_fechamento.toString().padStart(6,'0').replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3'):'—';
+    const tempoCalculado=calcularTempoParado(r.hora_abertura,r.hora_fechamento);
     return `
     <div class="chamado-card ${r.status}" onclick="toggleDesc('${idKodular}')">
       <div class="chamado-header">
@@ -196,10 +207,10 @@ function renderLista(){
       <div class="chamado-info">
         <span>🏭 Setor ${r.setorid||'—'}</span>
         <span>👤 ${r.aberto_por||'—'}</span>
-        <span>🕐 ${r.hora_abertura?r.hora_abertura.toString().padStart(6,'0').replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3'):'—'}</span>
-        ${r.status==='fechado'?`<span>✅ ${r.resolvido_por||'—'}</span>`:''}
+        <span>🕐 ${horaAbFormatada}</span>
+        ${r.status==='fechado'?`<span>🔒 ${horaFechFormatada}</span><span>✅ ${r.resolvido_por||'—'}</span>`:''}
       </div>
-      ${r.tempo_parado?`<div class="tempo-parado ${r.status}">⏱ Tempo parado: ${tempoFormatado}</div>`:''}
+      ${tempoCalculado?`<div class="tempo-parado ${r.status}">⏱ Tempo parado: ${tempoCalculado}</div>`:''}
       ${r.descricao?`<div class="chamado-descricao" id="desc-${idKodular}" style="display:none;margin-top:8px;padding:8px;background:#f0f6ff;border-radius:6px;font-size:12px;color:var(--text);">📝 ${r.descricao}</div>`:''}
     </div>
   `}).join('');
@@ -208,9 +219,12 @@ function renderLista(){
 async function carregar(){
   document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('pt-BR');
   dadosM=await fetchCSV(URL_M);
-  document.getElementById('cnt-total').textContent=dadosM.length;
-  document.getElementById('cnt-abertos').textContent=dadosM.filter(r=>r.status==='aberto').length;
-  document.getElementById('cnt-fechados').textContent=dadosM.filter(r=>r.status==='fechado').length;
+  const total=dadosM.length;
+  const abertos=dadosM.filter(r=>r.status==='aberto').length;
+  const fechados=dadosM.filter(r=>r.status==='fechado').length;
+  document.getElementById('cnt-total').textContent=total;
+  document.getElementById('cnt-abertos').textContent=abertos;
+  document.getElementById('cnt-fechados').textContent=fechados;
   renderLista();
 }
 
