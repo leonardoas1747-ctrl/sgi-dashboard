@@ -125,6 +125,11 @@ let filtroPeriodo='todos';
 
 function bust(url){return url+'&t='+Date.now();}
 
+// === datas para o filtro de periodo ===
+function hoje(){const d=new Date();const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);return local.toISOString().split('T')[0];}
+function inicioSemana(){const d=new Date();const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);local.setDate(local.getDate()-local.getDay());return local.toISOString().split('T')[0];}
+function inicioMes(){const d=new Date();const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);return `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-01`;}
+
 function formatarTempoParado(segundos){
   const s=parseInt(segundos)||0;
   if(s<=0) return '—';
@@ -142,6 +147,24 @@ function formatarTempoParado(segundos){
   const d=Math.floor(s/86400);
   const h=Math.floor((s%86400)/3600);
   return d+'d'+(h>0?' '+h+'h':'');
+}
+
+// === NOVO: monta data+hora. A hora pode vir com 6 (HHmmss) ou 14 (yyyyMMddHHmmss) digitos ===
+function parseDataHora(dataStr,horaStr){
+  if(!dataStr) return null;
+  const d=dataStr.toString().trim().split('-'); // [yyyy, mm, dd]
+  if(d.length<3) return null;
+  const h=(horaStr||'').toString().replace(/\D/g,'');
+  if(h.length<6) return null;
+  const t=h.slice(-6); // ultimos 6 digitos = HHmmss
+  return new Date(parseInt(d[0]),parseInt(d[1])-1,parseInt(d[2]),parseInt(t.slice(0,2)),parseInt(t.slice(2,4)),parseInt(t.slice(4,6)));
+}
+// exibe so o horario HH:MM:SS (pega os ultimos 6 digitos, funciona com id de 14 digitos)
+function formatHora6(horaStr){
+  const h=(horaStr||'').toString().replace(/\D/g,'');
+  if(h.length<6) return '—';
+  const t=h.slice(-6);
+  return t.slice(0,2)+':'+t.slice(2,4)+':'+t.slice(4,6);
 }
 
 async function fetchCSV(url){
@@ -172,16 +195,21 @@ function setFiltroPeriodo(v,btn){
 function filtrarDados(){
   let rows=[...dadosM];
   if(filtroStatus!=='todos') rows=rows.filter(r=>r.status===filtroStatus);
+  // ALTERADO: o filtro de periodo agora funciona de verdade, usando data_reg (data de abertura)
+  if(filtroPeriodo==='hoje') rows=rows.filter(r=>r.data_reg===hoje());
+  else if(filtroPeriodo==='semana') rows=rows.filter(r=>r.data_reg>=inicioSemana());
+  else if(filtroPeriodo==='mes') rows=rows.filter(r=>r.data_reg>=inicioMes());
   return rows;
 }
 
-function calcularTempoParado(horaAb, horaFech){
-  const ab=parseInt((horaAb||'0').toString().replace(/"/g,'').trim())||0;
-  const fech=parseInt((horaFech||'0').toString().replace(/"/g,'').trim())||0;
-  if(!ab||!fech) return null;
-  const diff=fech-ab;
-  if(diff<=0) return null;
-  return formatarTempoParado(diff);
+// ALTERADO: usa data_reg+hora_abertura e data_fechamento+hora_fechamento (funciona entre dias diferentes)
+function calcularTempoParado(r){
+  const ini=parseDataHora(r.data_reg,r.hora_abertura);
+  const fim=parseDataHora(r.data_fechamento,r.hora_fechamento);
+  if(!ini||!fim) return null;
+  const diffSeg=(fim-ini)/1000;
+  if(diffSeg<=0) return null;
+  return formatarTempoParado(diffSeg);
 }
 
 function renderLista(){
@@ -189,14 +217,13 @@ function renderLista(){
   const lista=document.getElementById('lista-chamados');
   if(!rows.length){lista.innerHTML='<div class="empty-msg">Nenhum chamado encontrado</div>';return;}
   lista.innerHTML=rows.map(r=>{
-    var dataLimpa=(r.data||'').split('-').join('');
-    const idKodular=(r.setorid||'')+dataLimpa+(r.id||'');
-    const idExibir=(r.setorid||'')+(r.id||'');
-    const horaAbFormatada=r.hora_abertura?r.hora_abertura.toString().padStart(6,'0').replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3'):'—';
-    const horaFechFormatada=r.hora_fechamento?r.hora_fechamento.toString().padStart(6,'0').replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3'):'—';
-    const tempoCalculado=calcularTempoParado(r.hora_abertura,r.hora_fechamento);
+    const uid=(r.id||'');          // id ja e unico (14 digitos) - serve de chave do card
+    const idExibir=(r.id||'—');    // exibe o id completo
+    const horaAbFormatada=formatHora6(r.hora_abertura);
+    const horaFechFormatada=formatHora6(r.hora_fechamento);
+    const tempoCalculado=calcularTempoParado(r);
     return `
-    <div class="chamado-card ${r.status}" onclick="toggleDesc('${idKodular}')">
+    <div class="chamado-card ${r.status}" onclick="toggleDesc('${uid}')">
       <div class="chamado-header">
         <div class="chamado-id-wrap">
           <div class="chamado-id-kodular">📋 ID: ${idExibir}</div>
@@ -211,7 +238,7 @@ function renderLista(){
         ${r.status==='fechado'?`<span>🔒 ${horaFechFormatada}</span><span>✅ ${r.resolvido_por||'—'}</span>`:''}
       </div>
       ${tempoCalculado?`<div class="tempo-parado ${r.status}">⏱ Tempo parado: ${tempoCalculado}</div>`:''}
-      ${r.descricao?`<div class="chamado-descricao" id="desc-${idKodular}" style="display:none;margin-top:8px;padding:8px;background:#f0f6ff;border-radius:6px;font-size:12px;color:var(--text);">📝 ${r.descricao}</div>`:''}
+      ${r.descricao?`<div class="chamado-descricao" id="desc-${uid}" style="display:none;margin-top:8px;padding:8px;background:#f0f6ff;border-radius:6px;font-size:12px;color:var(--text);">📝 ${r.descricao}</div>`:''}
     </div>
   `}).join('');
 }
