@@ -330,6 +330,26 @@ function inicioMes(){
   return `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-01`;
 }
 
+// === NOVO: monta data+hora completa. A hora pode vir com 6 (HHmmss) ou 14 (yyyyMMddHHmmss) dígitos ===
+function parseDataHora(dataStr, horaStr){
+  if(!dataStr) return null;
+  const d=dataStr.toString().trim().split('-'); // [yyyy, mm, dd]
+  if(d.length<3) return null;
+  const h=(horaStr||'').toString().replace(/\D/g,'');
+  if(h.length<6) return null;
+  const t=h.slice(-6); // pega os ultimos 6 digitos = HHmmss (funciona com id de 14 digitos tambem)
+  const hh=parseInt(t.slice(0,2)),mm=parseInt(t.slice(2,4)),ss=parseInt(t.slice(4,6));
+  return new Date(parseInt(d[0]),parseInt(d[1])-1,parseInt(d[2]),hh,mm,ss);
+}
+// duracao do chamado em minutos, usando data de abertura/fechamento + horas
+function minutosChamado(r){
+  const ini=parseDataHora(r.data_reg, r.hora_abertura);
+  const fim=parseDataHora(r.data_fechamento, r.hora_fechamento);
+  if(!ini||!fim) return null;
+  const diff=(fim-ini)/60000;
+  return diff>0?diff:null;
+}
+
 let dadosP=[],dadosQ=[],dadosM=[];
 let filtros={producao:'diario',qualidade:'diario',manutencao:'diario'};
 
@@ -400,10 +420,12 @@ function renderTabelaQ(p){
   ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td><td>${r.reprovado||0}</td><td>${r.defeito||'—'}</td><td>${r.criticidade||'—'}</td></tr>`).join('')}</table>`;
 }
 function renderTabelaM(p){
+  // ALTERADO: agora filtra por periodo usando data_reg e mostra a coluna Data
+  const rows=filtrarPeriodo(dadosM,'data_reg',p);
   const w=document.getElementById('tabela-manutencao-wrap');
-  if(!dadosM.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
-  w.innerHTML=`<table><tr><th>ID</th><th>Setor</th><th>Tipo</th><th>Status</th><th>Aberto por</th><th>Resolvido por</th></tr>
-  ${dadosM.map(r=>`<tr><td>${r.id||'—'}</td><td>${r.setorid}</td><td>${r.tipo||'—'}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.aberto_por||'—'}</td><td>${r.resolvido_por||'—'}</td></tr>`).join('')}</table>`;
+  if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
+  w.innerHTML=`<table><tr><th>Data</th><th>ID</th><th>Setor</th><th>Tipo</th><th>Status</th><th>Aberto por</th><th>Resolvido por</th></tr>
+  ${rows.map(r=>`<tr><td>${r.data_reg||'—'}</td><td>${r.id||'—'}</td><td>${r.setorid}</td><td>${r.tipo||'—'}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.aberto_por||'—'}</td><td>${r.resolvido_por||'—'}</td></tr>`).join('')}</table>`;
 }
 
 function renderPie(cid,lid,mid,labels,values,colors){
@@ -493,27 +515,24 @@ async function carregarQualidade(){
 async function carregarManutencao(){
   dadosM=await fetchCSV(BASE_M);
   const rows=dadosM;
+  const hj=hoje();
   const abertos=rows.filter(r=>r.status==='aberto').length;
   const fechados=rows.filter(r=>r.status==='fechado').length;
+  // ALTERADO: tempo medio e total calculados via data+hora (abertura e fechamento)
   let somaT=0,contF=0;
-  rows.filter(r=>r.status==='fechado'&&r.hora_abertura&&r.hora_fechamento).forEach(r=>{
-    const ini=r.hora_abertura.replace(/\D/g,''),fim=r.hora_fechamento.replace(/\D/g,'');
-    if(ini.length>=6&&fim.length>=6){
-      const ih=parseInt(ini.slice(0,2)),im=parseInt(ini.slice(2,4));
-      const fh=parseInt(fim.slice(0,2)),fm=parseInt(fim.slice(2,4));
-      const diff=(fh*60+fm)-(ih*60+im);
-      if(diff>0){somaT+=diff;contF++;}
-    }
+  rows.filter(r=>r.status==='fechado').forEach(r=>{
+    const m=minutosChamado(r);
+    if(m!=null){somaT+=m;contF++;}
   });
   const tMed=contF>0?Math.round(somaT/contF):0;
-  const tTotal=rows.reduce((s,r)=>s+(parseFloat(r.tempo_parado)||0),0);
+  const tTotal=Math.round(somaT);
   const disp=rows.length>0?Math.round(fechados/rows.length*100):100;
   document.getElementById('m-total').textContent=rows.length;
-  document.getElementById('m-dia').textContent=rows.length;
+  document.getElementById('m-dia').textContent=rows.filter(r=>r.data_reg===hj).length; // ALTERADO: so os de hoje
   document.getElementById('m-abertos').textContent=abertos;
   document.getElementById('m-fechados').textContent=fechados;
   document.getElementById('m-tmed').textContent=tMed||'—';
-  document.getElementById('m-ttotal').textContent=Math.round(tTotal);
+  document.getElementById('m-ttotal').textContent=tTotal; // ALTERADO: soma das duracoes
   document.getElementById('m-disp-bar').style.width=disp+'%';
   document.getElementById('m-disp-val').textContent=disp+'%';
   document.getElementById('m-tipotop').textContent=topItem(rows.map(r=>r.tipo).filter(Boolean));
