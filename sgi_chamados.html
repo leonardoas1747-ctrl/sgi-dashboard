@@ -243,9 +243,28 @@ function renderLista(){
   `}).join('');
 }
 
+// junta os registros pelo id: dados de abertura da linha aberta + dados de fechamento da linha fechada.
+// um chamado conta UMA vez; se houver qualquer linha fechada com aquele id, ele conta como fechado.
+function mergeChamados(rows){
+  const grupos={};
+  rows.forEach(r=>{ if(r.id){ (grupos[r.id]=grupos[r.id]||[]).push(r); } });
+  return Object.keys(grupos).map(id=>{
+    const g=grupos[id];
+    const ab=g.find(r=>r.aberto_por&&r.aberto_por!=='')||g[0];
+    const fe=g.find(r=>r.status==='fechado');
+    return {
+      id:id, empresaid:ab.empresaid, setorid:ab.setorid, data_reg:ab.data_reg,
+      aberto_por:ab.aberto_por, tipo:ab.tipo, hora_abertura:ab.hora_abertura, descricao:ab.descricao,
+      status: fe?'fechado':(ab.status||'aberto'),
+      hora_fechamento: fe?fe.hora_fechamento:'', resolvido_por: fe?fe.resolvido_por:'',
+      data_fechamento: fe?fe.data_fechamento:'', tempo_parado:(fe&&fe.tempo_parado)||ab.tempo_parado||''
+    };
+  });
+}
+
 async function carregar(){
   document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('pt-BR');
-  dadosM=await fetchCSV(URL_M);
+  dadosM=mergeChamados(await fetchCSV(URL_M));
   const total=dadosM.length;
   const abertos=dadosM.filter(r=>r.status==='aberto').length;
   const fechados=dadosM.filter(r=>r.status==='fechado').length;
