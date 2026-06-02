@@ -146,15 +146,15 @@
       <div class="card card-accent-blue"><div class="card-label">Registros</div><div class="card-value" id="p-reg">0</div><div class="card-unit">registros</div></div>
     </div>
     <div class="grid-2">
-      <div class="card card-accent"><div class="card-label">Peças / Hora</div><div class="card-value" id="p-pph">0</div><div class="card-unit">pçs/h</div></div>
+      <div class="card card-accent"><div class="card-label">Média Peças/Registro</div><div class="card-value" id="p-pph">0</div><div class="card-unit">peças/registro</div></div>
       <div class="card card-accent-red"><div class="card-label">Nº Paradas</div><div class="card-value" id="p-paradas">0</div><div class="card-unit">ocorrências</div></div>
     </div>
     <div class="grid-2">
-      <div class="card card-accent-green"><div class="card-label">Tempo Produzindo</div><div class="card-value" id="p-tprod">0</div><div class="card-unit">minutos</div></div>
+      <div class="card card-accent-green"><div class="card-label">Tempo Médio de Parada</div><div class="card-value" id="p-tprod">0</div><div class="card-unit">min/parada</div></div>
       <div class="card card-accent-red"><div class="card-label">Tempo Parado</div><div class="card-value" id="p-tpara">0</div><div class="card-unit">minutos</div></div>
     </div>
     <div class="card mb10">
-      <div class="card-label">Disponibilidade</div>
+      <div class="card-label">Taxa de Parada</div>
       <div class="disp-wrap">
         <div class="disp-bar-bg"><div class="disp-bar" id="p-disp-bar" style="width:0%"></div></div>
         <div class="disp-labels"><span>0%</span><span id="p-disp-val" style="font-weight:700;color:var(--blue)">0%</span><span>100%</span></div>
@@ -421,7 +421,7 @@ function renderTabelaQ(p){
 }
 function renderTabelaM(p){
   // ALTERADO: agora filtra por periodo usando data_reg e mostra a coluna Data
-  const rows=filtrarPeriodo(dadosM,'data_reg',p);
+  const rows=filtrarPeriodo(mergeChamados(dadosM),'data_reg',p);
   const w=document.getElementById('tabela-manutencao-wrap');
   if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
   w.innerHTML=`<table><tr><th>Data</th><th>ID</th><th>Setor</th><th>Tipo</th><th>Status</th><th>Aberto por</th><th>Resolvido por</th></tr>
@@ -463,15 +463,18 @@ async function carregarProducao(){
       if(fimMin>iniMin){const diff=fimMin-iniMin;if(r.status==='parado')tPar+=diff;else tP+=diff;}
     }
   });
-  const tot=tP+tPar,disp=tot>0?Math.round(tP/tot*100):0,pph=tP>0?Math.round(qtd/(tP/60)):0;
+  const tot=tP+tPar;
+  const mediaReg=rows.length>0?Math.round(qtd/rows.length):0;        // peças por registro
+  const tMedParada=paradas>0?Math.round(tPar/paradas):0;             // minutos médios por parada
+  const taxaParada=rows.length>0?Math.round(paradas/rows.length*100):0; // % de registros que foram parada
   document.getElementById('p-qtd').textContent=qtd;
   document.getElementById('p-reg').textContent=rows.length;
-  document.getElementById('p-pph').textContent=pph;
+  document.getElementById('p-pph').textContent=mediaReg;
   document.getElementById('p-paradas').textContent=paradas;
-  document.getElementById('p-tprod').textContent=Math.round(tP);
+  document.getElementById('p-tprod').textContent=tMedParada;
   document.getElementById('p-tpara').textContent=Math.round(tPar);
-  document.getElementById('p-disp-bar').style.width=disp+'%';
-  document.getElementById('p-disp-val').textContent=disp+'%';
+  document.getElementById('p-disp-bar').style.width=taxaParada+'%';
+  document.getElementById('p-disp-val').textContent=taxaParada+'%';
   document.getElementById('p-ptop').textContent=topItem(rows.map(r=>r.produto).filter(Boolean));
   const st=topItem(rows.map(r=>r.setorid).filter(Boolean));
   document.getElementById('p-stop').textContent=st?'Setor '+st:'—';
@@ -512,9 +515,29 @@ async function carregarQualidade(){
   if(dL.length) renderBar('chart-defeitos','metric-defeitos',dL,dV,'#004A99');
 }
 
+// junta os registros pelo id: dados de abertura da linha aberta + dados de fechamento da linha fechada.
+// um chamado conta UMA vez; se existir qualquer linha fechada com aquele id, ele conta como fechado.
+// os registros fechados continuam no Sheets (pra contabilizar depois) — isto corrige só a contagem visual.
+function mergeChamados(rows){
+  const grupos={};
+  rows.forEach(r=>{ if(r.id){ (grupos[r.id]=grupos[r.id]||[]).push(r); } });
+  return Object.keys(grupos).map(id=>{
+    const g=grupos[id];
+    const ab=g.find(r=>r.aberto_por&&r.aberto_por!=='')||g[0];
+    const fe=g.find(r=>r.status==='fechado');
+    return {
+      id:id, empresaid:ab.empresaid, setorid:ab.setorid, data_reg:ab.data_reg,
+      aberto_por:ab.aberto_por, tipo:ab.tipo, hora_abertura:ab.hora_abertura, descricao:ab.descricao,
+      status: fe?'fechado':(ab.status||'aberto'),
+      hora_fechamento: fe?fe.hora_fechamento:'', resolvido_por: fe?fe.resolvido_por:'',
+      data_fechamento: fe?fe.data_fechamento:'', tempo_parado:(fe&&fe.tempo_parado)||ab.tempo_parado||''
+    };
+  });
+}
+
 async function carregarManutencao(){
   dadosM=await fetchCSV(BASE_M);
-  const rows=dadosM;
+  const rows=mergeChamados(dadosM);
   const hj=hoje();
   const abertos=rows.filter(r=>r.status==='aberto').length;
   const fechados=rows.filter(r=>r.status==='fechado').length;
