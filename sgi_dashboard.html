@@ -104,8 +104,14 @@
   .relatorio-view{display:none;}
   .relatorio-view.visible{display:block;}
   .top-text{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;}
+  /* PAGINAÇÃO */
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;margin-top:8px;border-top:1px solid var(--border);}
+  .pag-btn{padding:6px 14px;border:2px solid var(--blue);background:white;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--blue);transition:all 0.2s;}
+  .pag-btn:hover:not([disabled]){background:var(--blue);color:white;}
+  .pag-btn[disabled]{opacity:0.35;cursor:not-allowed;border-color:var(--border);color:var(--text-muted);}
+  .pag-info{font-size:12px;color:var(--text-muted);text-align:center;}
   @media print{
-    .tabs,.btn-voltar,.btn-imprimir,.btn-refresh,.btn-relatorio,.filtros-rel{display:none!important;}
+    .tabs,.btn-voltar,.btn-imprimir,.btn-refresh,.btn-relatorio,.filtros-rel,.pagination{display:none!important;}
     .header{position:relative;}
     body{background:white;}
     .tabela-rel{display:block!important;box-shadow:none;border:1px solid #ccc;}
@@ -215,7 +221,7 @@
     </div>
     <div class="grid-2 mb10">
       <div class="card card-accent"><div class="card-label">Defeito Top</div><div class="top-text" style="color:var(--orange)" id="q-defeito">—</div></div>
-      <div class="card card-accent-red"><div class="card-label">Produto c/ + Rejeição</div><div class="top-text" style="color:var(--red)" id="q-prodrejeicao">—</div></div>
+      <div class="card card-accent-red"><div class="card-label">Produto c/ + Rejeição</div><div id="q-prodrejeicao"><span class="top-text" style="color:var(--red)">—</span></div></div>
     </div>
     <div class="card mb10"><div class="card-label">Setor c/ + Rejeição</div><div class="top-text" style="color:var(--blue)" id="q-setorrejeicao">—</div></div>
     <div class="chart-wrap">
@@ -311,6 +317,10 @@ const BASE_Q='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ
 const BASE_M='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
 const CORES=['#FF6600','#004A99','#00a651','#e63946','#f4a261','#0066CC','#9b2335','#2d6a4f'];
 
+// PAGINAÇÃO: 8 linhas por página
+const PAGE_SIZE = 8;
+let pagP=0, pagQ=0, pagM=0;
+
 function bust(url){return url+'&t='+Date.now();}
 
 function hoje(){
@@ -330,18 +340,16 @@ function inicioMes(){
   return `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-01`;
 }
 
-// === NOVO: monta data+hora completa. A hora pode vir com 6 (HHmmss) ou 14 (yyyyMMddHHmmss) dígitos ===
 function parseDataHora(dataStr, horaStr){
   if(!dataStr) return null;
-  const d=dataStr.toString().trim().split('-'); // [yyyy, mm, dd]
+  const d=dataStr.toString().trim().split('-');
   if(d.length<3) return null;
   const h=(horaStr||'').toString().replace(/\D/g,'');
   if(h.length<6) return null;
-  const t=h.slice(-6); // pega os ultimos 6 digitos = HHmmss (funciona com id de 14 digitos tambem)
+  const t=h.slice(-6);
   const hh=parseInt(t.slice(0,2)),mm=parseInt(t.slice(2,4)),ss=parseInt(t.slice(4,6));
   return new Date(parseInt(d[0]),parseInt(d[1])-1,parseInt(d[2]),hh,mm,ss);
 }
-// duracao do chamado em minutos, usando data de abertura/fechamento + horas
 function minutosChamado(r){
   const ini=parseDataHora(r.data_reg, r.hora_abertura);
   const fim=parseDataHora(r.data_fechamento, r.hora_fechamento);
@@ -379,6 +387,16 @@ async function fetchCSV(url){
   }).filter(r=>r.empresaid&&r.empresaid!=='');
 }
 
+// Helper para montar bloco de paginação
+function mkPag(total, page, fnName){
+  if(total<=1) return '';
+  return `<div class="pagination">
+    <button class="pag-btn" ${page===0?'disabled':''} onclick="${fnName}(${page-1})">← Ant.</button>
+    <span class="pag-info">Pág. ${page+1} / ${total}</span>
+    <button class="pag-btn" ${page>=total-1?'disabled':''} onclick="${fnName}(${page+1})">Próx. →</button>
+  </div>`;
+}
+
 function showTab(tab,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -397,35 +415,56 @@ function fecharRelatorio(s){
 }
 function setFiltro(s,p,btn){
   filtros[s]=p;
+  // reseta página ao trocar período
+  if(s==='producao') pagP=0;
+  if(s==='qualidade') pagQ=0;
+  if(s==='manutencao') pagM=0;
   btn.closest('.filtros-btns').querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');renderTabela(s,p);
 }
 function renderTabela(s,p){
-  if(s==='producao') renderTabelaP(p);
-  if(s==='qualidade') renderTabelaQ(p);
-  if(s==='manutencao') renderTabelaM(p);
+  if(s==='producao') renderTabelaP(pagP);
+  if(s==='qualidade') renderTabelaQ(pagQ);
+  if(s==='manutencao') renderTabelaM(pagM);
 }
-function renderTabelaP(p){
-  const rows=filtrarPeriodo(dadosP,'data',p);
+
+function renderTabelaP(page){
+  pagP=page||0;
+  const rows=filtrarPeriodo(dadosP,'data',filtros.producao);
   const w=document.getElementById('tabela-producao-wrap');
   if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
+  const totalPages=Math.ceil(rows.length/PAGE_SIZE);
+  const start=pagP*PAGE_SIZE;
+  const slice=rows.slice(start,start+PAGE_SIZE);
   w.innerHTML=`<table><tr><th>Data</th><th>Setor</th><th>Produto</th><th>Qtd</th><th>Status</th><th>Motivo</th></tr>
-  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.motivo_parada||'—'}</td></tr>`).join('')}</table>`;
+  ${slice.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.motivo_parada||'—'}</td></tr>`).join('')}
+  </table>${mkPag(totalPages,pagP,'renderTabelaP')}`;
 }
-function renderTabelaQ(p){
-  const rows=filtrarPeriodo(dadosQ,'data',p);
+
+function renderTabelaQ(page){
+  pagQ=page||0;
+  const rows=filtrarPeriodo(dadosQ,'data',filtros.qualidade);
   const w=document.getElementById('tabela-qualidade-wrap');
   if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
+  const totalPages=Math.ceil(rows.length/PAGE_SIZE);
+  const start=pagQ*PAGE_SIZE;
+  const slice=rows.slice(start,start+PAGE_SIZE);
   w.innerHTML=`<table><tr><th>Data</th><th>Setor</th><th>Produto</th><th>Qtd</th><th>Reprov</th><th>Defeito</th><th>Crit.</th></tr>
-  ${rows.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td><td>${r.reprovado||0}</td><td>${r.defeito||'—'}</td><td>${r.criticidade||'—'}</td></tr>`).join('')}</table>`;
+  ${slice.map(r=>`<tr><td>${r.data}</td><td>${r.setorid}</td><td>${r.produto||'—'}</td><td>${r.quantidade||0}</td><td>${r.reprovado||0}</td><td>${r.defeito||'—'}</td><td>${r.criticidade||'—'}</td></tr>`).join('')}
+  </table>${mkPag(totalPages,pagQ,'renderTabelaQ')}`;
 }
-function renderTabelaM(p){
-  // ALTERADO: agora filtra por periodo usando data_reg e mostra a coluna Data
-  const rows=filtrarPeriodo(mergeChamados(dadosM),'data_reg',p);
+
+function renderTabelaM(page){
+  pagM=page||0;
+  const rows=filtrarPeriodo(mergeChamados(dadosM),'data_reg',filtros.manutencao);
   const w=document.getElementById('tabela-manutencao-wrap');
   if(!rows.length){w.innerHTML='<div class="empty-msg">Nenhum registro encontrado</div>';return;}
+  const totalPages=Math.ceil(rows.length/PAGE_SIZE);
+  const start=pagM*PAGE_SIZE;
+  const slice=rows.slice(start,start+PAGE_SIZE);
   w.innerHTML=`<table><tr><th>Data</th><th>ID</th><th>Setor</th><th>Tipo</th><th>Status</th><th>Aberto por</th><th>Resolvido por</th></tr>
-  ${rows.map(r=>`<tr><td>${r.data_reg||'—'}</td><td>${r.id||'—'}</td><td>${r.setorid}</td><td>${r.tipo||'—'}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.aberto_por||'—'}</td><td>${r.resolvido_por||'—'}</td></tr>`).join('')}</table>`;
+  ${slice.map(r=>`<tr><td>${r.data_reg||'—'}</td><td>${r.id||'—'}</td><td>${r.setorid}</td><td>${r.tipo||'—'}</td><td class="td-${r.status}">${r.status||'—'}</td><td>${r.aberto_por||'—'}</td><td>${r.resolvido_por||'—'}</td></tr>`).join('')}
+  </table>${mkPag(totalPages,pagM,'renderTabelaM')}`;
 }
 
 function renderPie(cid,lid,mid,labels,values,colors){
@@ -463,10 +502,9 @@ async function carregarProducao(){
       if(fimMin>iniMin){const diff=fimMin-iniMin;if(r.status==='parado')tPar+=diff;else tP+=diff;}
     }
   });
-  const tot=tP+tPar;
-  const mediaReg=rows.length>0?Math.round(qtd/rows.length):0;        // peças por registro
-  const tMedParada=paradas>0?Math.round(tPar/paradas):0;             // minutos médios por parada
-  const taxaParada=rows.length>0?Math.round(paradas/rows.length*100):0; // % de registros que foram parada
+  const mediaReg=rows.length>0?Math.round(qtd/rows.length):0;
+  const tMedParada=paradas>0?Math.round(tPar/paradas):0;
+  const taxaParada=rows.length>0?Math.round(paradas/rows.length*100):0;
   document.getElementById('p-qtd').textContent=qtd;
   document.getElementById('p-reg').textContent=rows.length;
   document.getElementById('p-pph').textContent=mediaReg;
@@ -501,9 +539,17 @@ async function carregarQualidade(){
   arc.setAttribute('stroke',taxa>=95?'var(--green)':taxa>=80?'var(--orange)':'var(--red)');
   document.getElementById('q-meta-wrap').innerHTML=`<span class="badge ${taxa>=95?'badge-green':'badge-red'}">${taxa>=95?'✓ Meta atingida (≥95%)':'✗ Abaixo da meta (≥95%)'}</span>`;
   document.getElementById('q-defeito').textContent=topItem(rows.map(r=>r.defeito).filter(Boolean));
+  // PRODUTO COM MAIS REJEIÇÃO + DEFEITO PRINCIPAL DESSE PRODUTO
   const rP={};rows.forEach(r=>{if(r.produto)rP[r.produto]=(rP[r.produto]||0)+(parseInt(r.reprovado)||0);});
   const tP=Object.entries(rP).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('q-prodrejeicao').textContent=tP?tP[0]:'—';
+  if(tP){
+    const defProd=topItem(rows.filter(r=>r.produto===tP[0]).map(r=>r.defeito).filter(Boolean));
+    document.getElementById('q-prodrejeicao').innerHTML=
+      `<span class="top-text" style="color:var(--red)">${tP[0]}</span>`+
+      `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Defeito: <strong style="color:var(--orange)">${defProd}</strong></div>`;
+  } else {
+    document.getElementById('q-prodrejeicao').innerHTML='<span class="top-text" style="color:var(--red)">—</span>';
+  }
   const rS={};rows.forEach(r=>{if(r.setorid)rS[r.setorid]=(rS[r.setorid]||0)+(parseInt(r.reprovado)||0);});
   const tS=Object.entries(rS).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('q-setorrejeicao').textContent=tS?'Setor '+tS[0]:'—';
@@ -515,9 +561,6 @@ async function carregarQualidade(){
   if(dL.length) renderBar('chart-defeitos','metric-defeitos',dL,dV,'#004A99');
 }
 
-// junta os registros pelo id: dados de abertura da linha aberta + dados de fechamento da linha fechada.
-// um chamado conta UMA vez; se existir qualquer linha fechada com aquele id, ele conta como fechado.
-// os registros fechados continuam no Sheets (pra contabilizar depois) — isto corrige só a contagem visual.
 function mergeChamados(rows){
   const grupos={};
   rows.forEach(r=>{ if(r.id){ (grupos[r.id]=grupos[r.id]||[]).push(r); } });
@@ -541,7 +584,6 @@ async function carregarManutencao(){
   const hj=hoje();
   const abertos=rows.filter(r=>r.status==='aberto').length;
   const fechados=rows.filter(r=>r.status==='fechado').length;
-  // ALTERADO: tempo medio e total calculados via data+hora (abertura e fechamento)
   let somaT=0,contF=0;
   rows.filter(r=>r.status==='fechado').forEach(r=>{
     const m=minutosChamado(r);
@@ -551,11 +593,11 @@ async function carregarManutencao(){
   const tTotal=Math.round(somaT);
   const disp=rows.length>0?Math.round(fechados/rows.length*100):100;
   document.getElementById('m-total').textContent=rows.length;
-  document.getElementById('m-dia').textContent=rows.filter(r=>r.data_reg===hj).length; // ALTERADO: so os de hoje
+  document.getElementById('m-dia').textContent=rows.filter(r=>r.data_reg===hj).length;
   document.getElementById('m-abertos').textContent=abertos;
   document.getElementById('m-fechados').textContent=fechados;
   document.getElementById('m-tmed').textContent=tMed||'—';
-  document.getElementById('m-ttotal').textContent=tTotal; // ALTERADO: soma das duracoes
+  document.getElementById('m-ttotal').textContent=tTotal;
   document.getElementById('m-disp-bar').style.width=disp+'%';
   document.getElementById('m-disp-val').textContent=disp+'%';
   document.getElementById('m-tipotop').textContent=topItem(rows.map(r=>r.tipo).filter(Boolean));
