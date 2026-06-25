@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>SGI Industrial — Chamados</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
@@ -115,9 +118,39 @@
 
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 function toggleDesc(id){const d=document.getElementById('desc-'+id);if(d)d.style.display=d.style.display==='none'?'block':'none';}
-const URL_M='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
+// ===== CONEXAO COM O FIREBASE (mural) - tempo real, sem chave =====
+const FIREBASE_DB_URL='https://tccsistemadeproducao-default-rtdb.firebaseio.com';
+function getEmpresaId(){
+  try{const e=new URLSearchParams(location.search).get('e');if(e&&e.trim())return e.trim();}catch(_){}
+  return 'sgiindustrialsuporte';
+}
+const EMPRESA_ID=getEmpresaId();
+firebase.initializeApp({databaseURL:FIREBASE_DB_URL});
+const DB=firebase.database();
+function limpar(v){
+  if(v===null||v===undefined) return '';
+  let s=String(v).trim();
+  while(s.length>=2 && s.charAt(0)==='"' && s.charAt(s.length-1)==='"'){s=s.slice(1,-1).trim();}
+  return s;
+}
+function ehData(k){return /^\d{4}-\d{2}-\d{2}$/.test(k);}
+function dataDeHora14(h){const d=String(h||'').replace(/\D/g,'');if(d.length<8)return '';return d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);}
+function montarChamados(setores){
+  const M=[];
+  Object.keys(setores||{}).forEach(function(sid){
+    const cham=(setores[sid]||{}).chamados||{};
+    Object.keys(cham).forEach(function(k){
+      const r=cham[k]||{};
+      const hf=limpar(r.hora_fechamento);
+      M.push({empresaid:EMPRESA_ID,setorid:sid,id:k,data_reg:limpar(r.data_hoje)||dataDeHora14(k),hora_abertura:limpar(r.hora_abertura),hora_fechamento:hf,data_fechamento:dataDeHora14(hf),aberto_por:limpar(r.aberto_por),resolvido_por:limpar(r.resolvido_por),status:limpar(r.status),tipo:limpar(r.tipo),descricao:limpar(r.descricao),tempo_parado:limpar(r.tempo_parado)});
+    });
+  });
+  return M;
+}
 
 let dadosM=[];
 let filtroStatus='todos';
@@ -264,7 +297,6 @@ function mergeChamados(rows){
 
 async function carregar(){
   document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('pt-BR');
-  dadosM=mergeChamados(await fetchCSV(URL_M));
   const total=dadosM.length;
   const abertos=dadosM.filter(r=>r.status==='aberto').length;
   const fechados=dadosM.filter(r=>r.status==='fechado').length;
@@ -274,8 +306,10 @@ async function carregar(){
   renderLista();
 }
 
-carregar();
-setInterval(carregar,60000);
+DB.ref('empresas/'+EMPRESA_ID+'/setores').on('value', function(snap){
+  dadosM=montarChamados(snap.val());
+  carregar();
+}, function(err){ console.error('Erro ao ler o Firebase:', err); });
 </script>
 </body>
 </html>

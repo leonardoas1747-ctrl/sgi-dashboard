@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>SGI Industrial — Dashboard</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
@@ -311,10 +314,50 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-const BASE_P='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=0&single=true&output=csv';
-const BASE_Q='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=910958963&single=true&output=csv';
-const BASE_M='https://docs.google.com/spreadsheets/d/e/2PACX-1vR-f1IXQgRVhohTyoZ3cqaifOOjdlAZxUBoXQXlGM4J5DEQB_oSPsNnK5C8r59kCMd6jzbEZB8PIPv7/pub?gid=670763254&single=true&output=csv';
+// ===== CONEXAO COM O FIREBASE (mural) - tempo real, sem chave =====
+const FIREBASE_DB_URL='https://tccsistemadeproducao-default-rtdb.firebaseio.com';
+function getEmpresaId(){
+  try{const e=new URLSearchParams(location.search).get('e');if(e&&e.trim())return e.trim();}catch(_){}
+  return 'sgiindustrialsuporte';
+}
+const EMPRESA_ID=getEmpresaId();
+firebase.initializeApp({databaseURL:FIREBASE_DB_URL});
+const DB=firebase.database();
+function limpar(v){
+  if(v===null||v===undefined) return '';
+  let s=String(v).trim();
+  while(s.length>=2 && s.charAt(0)==='"' && s.charAt(s.length-1)==='"'){s=s.slice(1,-1).trim();}
+  return s;
+}
+function ehData(k){return /^\d{4}-\d{2}-\d{2}$/.test(k);}
+function dataDeHora14(h){const d=String(h||'').replace(/\D/g,'');if(d.length<8)return '';return d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);}
+function montarListas(setores){
+  const P=[],Q=[],M=[];
+  Object.keys(setores||{}).forEach(function(sid){
+    const setor=setores[sid]||{};
+    const prod=setor.producao||{};
+    Object.keys(prod).forEach(function(k){
+      if(ehData(k)) return;
+      const r=prod[k]||{};
+      P.push({empresaid:EMPRESA_ID,setorid:sid,id:k,data:limpar(r.data)||dataDeHora14(k),produto:limpar(r.produto),quantidade:limpar(r.quantidade),status:limpar(r.status),motivo_parada:limpar(r.motivo_parada),hora_inicio:limpar(r.hora_inicio),hora_fim:limpar(r.hora_fim)});
+    });
+    const qual=setor.qualidade||{};
+    Object.keys(qual).forEach(function(k){
+      const r=qual[k]||{};
+      Q.push({empresaid:EMPRESA_ID,setorid:sid,id:k,data:limpar(r.data)||dataDeHora14(k),produto:limpar(r.produto),quantidade:limpar(r.quantidade),aprovado:limpar(r.aprovado),reprovado:limpar(r.reprovado),defeito:limpar(r.defeito),criticidade:limpar(r.criticidade)});
+    });
+    const cham=setor.chamados||{};
+    Object.keys(cham).forEach(function(k){
+      const r=cham[k]||{};
+      const hf=limpar(r.hora_fechamento);
+      M.push({empresaid:EMPRESA_ID,setorid:sid,id:k,data_reg:limpar(r.data_hoje)||dataDeHora14(k),hora_abertura:limpar(r.hora_abertura),hora_fechamento:hf,data_fechamento:dataDeHora14(hf),aberto_por:limpar(r.aberto_por),resolvido_por:limpar(r.resolvido_por),status:limpar(r.status),tipo:limpar(r.tipo),descricao:limpar(r.descricao),tempo_parado:limpar(r.tempo_parado)});
+    });
+  });
+  return {P:P,Q:Q,M:M};
+}
 const CORES=['#FF6600','#004A99','#00a651','#e63946','#f4a261','#0066CC','#9b2335','#2d6a4f'];
 
 // PAGINAÇÃO: 8 linhas por página
@@ -486,7 +529,6 @@ function renderBar(cid,mid,labels,values,color){
 }
 
 async function carregarProducao(){
-  dadosP=await fetchCSV(BASE_P);
   const hj=hoje();
   const rows=dadosP.filter(r=>r.data===hj);
   const qtd=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
@@ -522,7 +564,6 @@ async function carregarProducao(){
 }
 
 async function carregarQualidade(){
-  dadosQ=await fetchCSV(BASE_Q);
   const hj=hoje();
   const rows=dadosQ.filter(r=>r.data===hj);
   const insp=rows.reduce((s,r)=>s+(parseInt(r.quantidade)||0),0);
@@ -579,7 +620,6 @@ function mergeChamados(rows){
 }
 
 async function carregarManutencao(){
-  dadosM=await fetchCSV(BASE_M);
   const rows=mergeChamados(dadosM);
   const hj=hoje();
   const abertos=rows.filter(r=>r.status==='aberto').length;
@@ -617,8 +657,12 @@ async function carregarTudo(){
   await Promise.all([carregarProducao(),carregarQualidade(),carregarManutencao()]);
 }
 
-carregarTudo();
-setInterval(carregarTudo,60000);
+// ===== FIO DIRETO: escuta o mural e atualiza na hora =====
+DB.ref('empresas/'+EMPRESA_ID+'/setores').on('value', function(snap){
+  const listas=montarListas(snap.val());
+  dadosP=listas.P; dadosQ=listas.Q; dadosM=listas.M;
+  carregarTudo();
+}, function(err){ console.error('Erro ao ler o Firebase:', err); });
 </script>
 </body>
 </html>
